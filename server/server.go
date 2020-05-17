@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"workhorse/util"
 
 	"github.com/gorilla/websocket"
 )
@@ -25,8 +26,13 @@ func handleWorkFlow(response http.ResponseWriter, request *http.Request) {
 
 func main() {
 	http.HandleFunc("/runWorkflow", handleWorkFlow)
+	ipAddress := util.GetHostIPAddress()
 
-	const addr = "localhost:8081"
+	http.HandleFunc("/ping", func(w http.ResponseWriter, request *http.Request) {
+		fmt.Fprintf(w, "Hello from master::: %s!", ipAddress)
+	})
+
+	addr := ipAddress + ":8081"
 	fmt.Println("Starting master node at:::" + addr)
 	http.ListenAndServe(addr, nil)
 }

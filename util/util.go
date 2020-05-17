@@ -6,7 +6,7 @@ import (
 	"workhorse/api"
 )
 
-func ConvertToWorkflowObject(data []byte) *WorkflowTransferObject {
+func ConvertToWorkflowObject(data []byte) *api.WorkflowTransferObject {
 	dec := gob.NewDecoder(bytes.NewReader(data))
 
 	j := &api.WorkflowTransferObject{}

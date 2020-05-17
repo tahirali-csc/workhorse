@@ -1,2 +1,4 @@
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/storageos/go-api v0.0.0-20200409163420-6e099a478f49 h1:ilHuybrss2PKS/zZwxFriNtzh2lzeBsA9YiKnDROYp0=
+github.com/storageos/go-api v0.0.0-20200409163420-6e099a478f49/go.mod h1:ZrLn+e0ZuF3Y65PNF6dIwbJPZqfmtCXxFm9ckv0agOY=
