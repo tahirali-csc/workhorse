@@ -33,8 +33,7 @@ func runWorkFlow(clientConn *websocket.Conn) {
 }
 
 func sendJobToWorkerNode(clientConn *websocket.Conn, wg *sync.WaitGroup, lock *sync.RWMutex) {
-	// const addr = "localhost:8082"
-	const addr = "192.168.56.103:8082"
+	const addr = "192.168.56.103:8080"
 	u := url.URL{Scheme: "ws", Host: addr, Path: "/runJob"}
 
 	workerNodeConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
