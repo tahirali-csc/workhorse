@@ -19,6 +19,8 @@ func runDockerContainer() io.ReadCloser {
 	bash := `
 	#!/bin/bash
 	ls -la
+	hostname
+	echo "sleeping ..."
 	sleep 2s
 	pwd
 	sleep 2s
