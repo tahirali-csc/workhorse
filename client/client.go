@@ -27,7 +27,7 @@ func main() {
 		if msgType == websocket.CloseMessage {
 			break
 		} else {
-			fmt.Println(string(msg))
+			fmt.Print(string(msg))
 		}
 	}
 

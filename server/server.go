@@ -16,7 +16,7 @@ func handleWorkFlow(response http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
-	runWorkFlow(conn)
+	runWorkFlowSync(conn)
 
 	defer func() {
 		fmt.Println("Closing socket connection")
