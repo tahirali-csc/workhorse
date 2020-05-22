@@ -32,7 +32,8 @@ func main() {
 		fmt.Fprintf(w, "Hello from master::: %s!", ipAddress)
 	})
 
-	addr := ipAddress + ":8081"
+	// addr := ipAddress + ":8081"
+	addr := "localhost:8081"
 	fmt.Println("Starting master node at:::" + addr)
 	http.ListenAndServe(addr, nil)
 }

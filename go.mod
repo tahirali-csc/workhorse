@@ -17,5 +17,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 
 )

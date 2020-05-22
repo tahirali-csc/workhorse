@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"workhorse/util"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,7 +14,10 @@ func runJob(conn *websocket.Conn) {
 	// 	conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("This is message # %d", i)))
 	// }
 
-	response := runDockerContainer()
+	_, msg, _ := conn.ReadMessage()
+	job := util.ConvertToJobObject(msg)
+
+	response := runDockerContainer(job)
 	rd := bufio.NewReader(response)
 
 	for {

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"workhorse/api"
+	"workhorse/util"
 
 	"github.com/gorilla/websocket"
 )
@@ -10,28 +12,37 @@ import (
 func runWorkFlowSync(clientConn *websocket.Conn) {
 
 	for {
-		_, _, err := clientConn.ReadMessage()
+		_, msg, err := clientConn.ReadMessage()
 		if err != nil {
 			break
 		}
 
-		for i := 1; i <= 2; i++ {
-			sendJobToWorkerNodeSync(clientConn)
+		wtObj := util.ConvertToWorkflowObject(msg)
+		for _, job := range wtObj.Jobs {
+			sendJobToWorkerNodeSync(clientConn, job)
 		}
+		// fmt.Println(wtObj)
+
+		// for i := 1; i <= 2; i++ {
+		// 	sendJobToWorkerNodeSync(clientConn)
+		// }
 		break
 	}
 
 	fmt.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(clientConn *websocket.Conn) {
-	const addr = "192.168.56.103:8080"
+func sendJobToWorkerNodeSync(clientConn *websocket.Conn, job api.JobTransferObject) {
+	const addr = "localhost:8080"
+	// const addr = "192.168.56.103:8080"
 	u := url.URL{Scheme: "ws", Host: addr, Path: "/runJob"}
 
 	workerNodeConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		panic(err)
 	}
+
+	workerNodeConn.WriteMessage(websocket.BinaryMessage, util.ConvertToByteArray(job))
 
 	for {
 		msgType, msg, err := workerNodeConn.ReadMessage()

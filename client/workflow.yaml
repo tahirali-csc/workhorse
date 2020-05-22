@@ -1,0 +1,7 @@
+jobs:
+    -
+        name: job1
+        script: job1.sh
+    -
+        name: job2
+        script: job2.sh
