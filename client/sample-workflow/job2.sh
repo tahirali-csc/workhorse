@@ -1,3 +1,3 @@
 #!/bin/sh
 echo "This is script ###2"
-whoami
+ls -la /usr/bin/

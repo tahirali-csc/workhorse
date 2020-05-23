@@ -18,7 +18,10 @@ func runJob(conn *websocket.Conn) {
 	//Deseriliaze the msg to an object
 	job := util.ConvertToJobObject(msg)
 
+	//Run the job in the container
 	response := runDockerContainer(job)
+
+	//Copy the conainer response to websocket stream
 	rd := bufio.NewReader(response)
 
 	for {

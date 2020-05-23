@@ -1,38 +1,27 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/url"
+	"flag"
 	"workhorse/util"
-
-	"github.com/gorilla/websocket"
 )
 
 func main() {
+	//Read command line arguments
+	masterNodeIPParam := flag.String("master-node-address", "localhost", "Address of master node")
+	workflowFileParam := flag.String("workflow-file", "", "Workflow file")
 
-	u := url.URL{Scheme: "ws", Host: "localhost:8081", Path: "/runWorkflow"}
-	// u := url.URL{Scheme: "ws", Host: "192.168.56.102:8081", Path: "/runWorkflow"}
-	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	masterNodeIP := *masterNodeIPParam
+	workflowPath := *workflowFileParam
+
+	workflowPath = "/home/tahir/workspace/rnd-projects/workhorse/client/sample-workflow/workflow.yaml"
+
+	//Read workflow
+	workflowTransferObj, err := readWorkflow(workflowPath)
 	if err != nil {
-		log.Fatal("dial:", err)
+		panic(err)
 	}
 
-	workflowBytes := util.ConvertToByteArray(readWorkflow())
-	conn.WriteMessage(websocket.BinaryMessage, workflowBytes)
+	workflowTransferObjBytes := util.ConvertToByteArray(workflowTransferObj)
+	sendWorkFlow(masterNodeIP, workflowTransferObjBytes)
 
-	for {
-		msgType, msg, err := conn.ReadMessage()
-		if err != nil {
-			break
-		}
-
-		if msgType == websocket.CloseMessage {
-			break
-		} else {
-			fmt.Print(string(msg))
-		}
-	}
-
-	defer conn.Close()
 }

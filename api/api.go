@@ -6,6 +6,7 @@ type WorkflowTransferObject struct {
 
 type JobTransferObject struct {
 	Name           string
+	FileName       string
 	ScriptContents []byte
 }
 

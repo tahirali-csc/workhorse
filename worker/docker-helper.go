@@ -45,13 +45,14 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 		panic(err)
 	}
 
-	jobDir := createTempFile(string(job.ScriptContents), "dumb.sh")
+	// jobDir := createTempFile(string(job.ScriptContents), "dumb.sh")
+	jobDir := createTempFile(string(job.ScriptContents), job.FileName)
 	fmt.Println(jobDir)
 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: "alpine",
-		Cmd:   []string{"/bin/sh", "-c", "./job/dumb.sh"},
-		// Cmd: []string{"ls -la"},
+		// Cmd:   []string{"/bin/sh", "-c", "./job/dumb.sh"},
+		Cmd:          []string{"/bin/sh", "-c", "./job/" + job.FileName},
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
