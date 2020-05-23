@@ -30,6 +30,7 @@ func handleWorkFlow(response http.ResponseWriter, request *http.Request) {
 func main() {
 	//Read command line arguments
 	workerNodeAddrParams := flag.String("worker-node-address", "", "Comma separted ip address of worker nodes")
+	flag.Parse()
 
 	workers := []WorkerNode{}
 	if len(*workerNodeAddrParams) == 0 {
@@ -39,8 +40,10 @@ func main() {
 			workers = append(workers, WorkerNode{Address: w})
 		}
 	}
+	fmt.Println("Will use these worker nodes:::", workers)
 
-	WorkScheduler = NewRandomScheduler(workers)
+	// WorkScheduler = NewRandomScheduler(workers)
+	WorkScheduler = NewRoundRobinScheduler(workers)
 
 	http.HandleFunc("/runWorkflow", handleWorkFlow)
 	ipAddress := util.GetHostIPAddress()

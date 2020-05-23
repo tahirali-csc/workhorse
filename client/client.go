@@ -9,6 +9,7 @@ func main() {
 	//Read command line arguments
 	masterNodeIPParam := flag.String("master-node-address", "localhost", "Address of master node")
 	workflowFileParam := flag.String("workflow-file", "", "Workflow file")
+	flag.Parse()
 
 	masterNodeIP := *masterNodeIPParam
 	workflowPath := *workflowFileParam
