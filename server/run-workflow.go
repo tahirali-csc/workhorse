@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func runWorkFlowSync(clientConn *websocket.Conn) {
+func runWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 
 	for {
 		_, msg, err := clientConn.ReadMessage()
@@ -19,23 +19,19 @@ func runWorkFlowSync(clientConn *websocket.Conn) {
 
 		wtObj := util.ConvertToWorkflowObject(msg)
 		for _, job := range wtObj.Jobs {
-			sendJobToWorkerNodeSync(clientConn, job)
+			sendJobToWorkerNodeSync(clientConn, job, scheduler.GetNext())
 		}
-		// fmt.Println(wtObj)
-
-		// for i := 1; i <= 2; i++ {
-		// 	sendJobToWorkerNodeSync(clientConn)
-		// }
 		break
 	}
 
 	fmt.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(clientConn *websocket.Conn, job api.JobTransferObject) {
-	const addr = "localhost:8080"
+func sendJobToWorkerNodeSync(clientConn *websocket.Conn, job api.JobTransferObject, worker WorkerNode) {
+	// const addr = "localhost:8080"
 	// const addr = "192.168.56.103:8080"
-	u := url.URL{Scheme: "ws", Host: addr, Path: "/runJob"}
+	fmt.Println("Sending the job at " + worker.Address)
+	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}
 
 	workerNodeConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {

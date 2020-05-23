@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
+	"math/rand"
 	"workhorse/api"
 )
 
@@ -31,4 +32,8 @@ func ConvertToByteArray(workflow interface{}) []byte {
 		log.Fatal("encode error:", err)
 	}
 	return network.Bytes()
+}
+
+func RandomBetween(min int, max int) int {
+	return rand.Intn(max-min) + min
 }

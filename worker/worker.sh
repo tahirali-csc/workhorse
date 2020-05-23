@@ -1,3 +1,3 @@
 #/bin/sh
 
-go run worker/*.go
+go run worker/*.go 
