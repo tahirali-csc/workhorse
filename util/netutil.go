@@ -6,15 +6,6 @@ import (
 )
 
 func GetHostIPAddress() string {
-	// host, _ := os.Hostname()
-	// addrs, _ := net.LookupIP(host)
-
-	// for _, addr := range addrs {
-	// 	if ipv4 := addr.To4(); ipv4 != nil {
-	// 		fmt.Println("IPv4: ", ipv4)
-	// 	}
-	// }
-
 	//TODO: Review to find the logic of finding primary outbound network interface
 	addr, err := net.InterfaceAddrs()
 	if err == nil {

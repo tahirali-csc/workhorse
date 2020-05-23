@@ -2,19 +2,20 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"workhorse/util"
 
 	"github.com/gorilla/websocket"
 )
 
 func runJob(conn *websocket.Conn) {
+	_, msg, err := conn.ReadMessage()
+	if err != nil {
+		fmt.Println("Error in reading message", err)
+		return
+	}
 
-	// for i := 1; i < 5; i++ {
-	// 	time.Sleep(3 * time.Second)
-	// 	conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("This is message # %d", i)))
-	// }
-
-	_, msg, _ := conn.ReadMessage()
+	//Deseriliaze the msg to an object
 	job := util.ConvertToJobObject(msg)
 
 	response := runDockerContainer(job)

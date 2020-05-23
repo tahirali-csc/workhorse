@@ -32,8 +32,7 @@ func main() {
 		fmt.Fprintf(w, "Hello from worker::: %s!", ipAddress)
 	})
 
-	// addr := ipAddress + ":8080"
-	addr := "localhost:8080"
+	addr := ":8080"
 	fmt.Println("Starting worker node at:::" + addr)
 	http.ListenAndServe(addr, nil)
 }

@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const workflowPath = "/home/tahir/workspace/rnd-projects/workhorse/client/"
+const workflowPath = "/home/tahir/workspace/rnd-projects/workhorse/client/sample-workflow"
 
 func readWorkflow() *api.WorkflowTransferObject {
 	return convertToTransferObject(readWorkflowYamlFile())

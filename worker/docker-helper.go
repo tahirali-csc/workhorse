@@ -51,7 +51,6 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: "alpine",
 		Cmd:   []string{"/bin/sh", "-c", "./job/dumb.sh"},
-
 		// Cmd: []string{"ls -la"},
 		Tty:          true,
 		AttachStdout: true,
@@ -73,10 +72,8 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 
 	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
 		ShowStdout: true,
-		// ShowStderr: true,
-		Follow: true,
-		// Details:    true,
-		// Tail:       "100",
+		ShowStderr: true,
+		Follow:     true,
 	})
 	if err != nil {
 		panic(err)

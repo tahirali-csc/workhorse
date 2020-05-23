@@ -1,4 +1,7 @@
 #!/bin/sh
-date
-sleep 2s
-ls -la
+val=1
+while :
+do
+	date
+	sleep 2
+done
