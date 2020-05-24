@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"workhorse/pkg/workflow"
-	"workhorse/util"
+	"workhorse/pkg/client/workflow"
+	"workhorse/pkg/util"
 )
 
 func main() {

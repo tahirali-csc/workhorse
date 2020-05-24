@@ -1,15 +1,15 @@
-package main
+package server
 
 import (
 	"fmt"
 	"net/url"
 	"workhorse/api"
-	"workhorse/util"
+	"workhorse/pkg/util"
 
 	"github.com/gorilla/websocket"
 )
 
-func runWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
+func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 
 	for {
 		_, msg, err := clientConn.ReadMessage()

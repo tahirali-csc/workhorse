@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"workhorse/util"
+	"workhorse/pkg/util"
+	"workhorse/pkg/worker"
 
 	"github.com/gorilla/websocket"
 )
@@ -16,7 +17,7 @@ func handleJob(response http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
-	runJob(conn)
+	worker.RunJob(conn)
 
 	defer func() {
 		fmt.Println("Closing socket connection")

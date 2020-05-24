@@ -1,8 +1,8 @@
-package main
+package server
 
 import (
 	"sync"
-	"workhorse/util"
+	"workhorse/pkg/util"
 )
 
 type Scheduler interface {

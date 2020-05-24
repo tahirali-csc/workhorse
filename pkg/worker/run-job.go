@@ -1,14 +1,14 @@
-package main
+package worker
 
 import (
 	"bufio"
 	"fmt"
-	"workhorse/util"
+	"workhorse/pkg/util"
 
 	"github.com/gorilla/websocket"
 )
 
-func runJob(conn *websocket.Conn) {
+func RunJob(conn *websocket.Conn) {
 	_, msg, err := conn.ReadMessage()
 	if err != nil {
 		fmt.Println("Error in reading message", err)
