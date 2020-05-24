@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"time"
 	"workhorse/api"
 
 	"github.com/docker/docker/api/types"
@@ -38,6 +39,13 @@ func createTempFile(contents string, jobFile string) string {
 	return jobDir
 }
 
+func getTargetMountDirectory() string {
+	t := time.Now()
+	return fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second())
+}
+
 func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -54,10 +62,10 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 	jobDir := createTempFile(string(job.ScriptContents), job.FileName)
 	fmt.Println(jobDir)
 
+	targetMountDir := getTargetMountDirectory()
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		// Image: "alpine",
 		Image:        job.Image,
-		Cmd:          []string{"/bin/sh", "-c", "./job/" + job.FileName},
+		Cmd:          []string{"/bin/sh", "-c", "./" + targetMountDir + "/" + job.FileName},
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -67,7 +75,10 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 			{
 				Type:   mount.TypeBind,
 				Source: jobDir,
-				Target: "/job",
+				//Use a unique different directory to avoid conflict with directory name
+				//in container
+				// Target: "/job",
+				Target: path.Join("/", targetMountDir),
 			},
 		},
 	}, nil, "")
