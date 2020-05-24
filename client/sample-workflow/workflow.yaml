@@ -6,4 +6,5 @@ jobs:
     -
         name: job2
         script: job2.sh
-        image: maven:latest
+        image: openjdk:8-jdk
+        # image: maven:latest

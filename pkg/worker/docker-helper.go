@@ -53,7 +53,8 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 		panic(err)
 	}
 
-	reader, err := cli.ImagePull(ctx, "docker.io/library/"+job.Image, types.ImagePullOptions{})
+	// reader, err := cli.ImagePull(ctx, "docker.io/library/"+job.Image, types.ImagePullOptions{})
+	reader, err := cli.ImagePull(ctx, job.Image, types.ImagePullOptions{})
 	if err != nil {
 		panic(err)
 	}
