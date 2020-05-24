@@ -1,4 +1,4 @@
-package main
+package workflow
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func sendWorkFlow(masterNodeIP string, workflowTransferObjBytes []byte) {
+func SendWorkFlow(masterNodeIP string, workflowTransferObjBytes []byte) {
 	u := url.URL{Scheme: "ws", Host: masterNodeIP + ":8081", Path: "/runWorkflow"}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {

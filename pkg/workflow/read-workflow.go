@@ -1,4 +1,4 @@
-package main
+package workflow
 
 import (
 	"io/ioutil"
@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func readWorkflow(workflowFile string) (*api.WorkflowTransferObject, error) {
+func ReadWorkflow(workflowFile string) (*api.WorkflowTransferObject, error) {
 	workflow, err := readWorkflowYamlFile(workflowFile)
 	if err != nil {
 		return nil, err
