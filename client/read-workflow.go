@@ -33,6 +33,7 @@ func convertToTransferObject(workflowFile string, workflow *api.Workflow) (*api.
 			Name:           job.Name,
 			ScriptContents: script,
 			FileName:       job.Script,
+			Image:          job.Image,
 		})
 	}
 

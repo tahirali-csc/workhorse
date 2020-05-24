@@ -45,13 +45,18 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 		panic(err)
 	}
 
-	// jobDir := createTempFile(string(job.ScriptContents), "dumb.sh")
+	reader, err := cli.ImagePull(ctx, "docker.io/library/"+job.Image, types.ImagePullOptions{})
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(os.Stdout, reader)
+
 	jobDir := createTempFile(string(job.ScriptContents), job.FileName)
 	fmt.Println(jobDir)
 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: "alpine",
-		// Cmd:   []string{"/bin/sh", "-c", "./job/dumb.sh"},
+		// Image: "alpine",
+		Image:        job.Image,
 		Cmd:          []string{"/bin/sh", "-c", "./job/" + job.FileName},
 		Tty:          true,
 		AttachStdout: true,
@@ -60,9 +65,7 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 	}, &container.HostConfig{
 		Mounts: []mount.Mount{
 			{
-				Type: mount.TypeBind,
-				// Source: "//home/tahir/workspace/rnd-projects/workhorse/",
-				// Target: "/java",
+				Type:   mount.TypeBind,
 				Source: jobDir,
 				Target: "/job",
 			},
@@ -81,5 +84,4 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 	}
 
 	return out
-
 }

@@ -2,6 +2,8 @@ jobs:
     -
         name: job1
         script: job1.sh
+        image: alpine
     -
         name: job2
         script: job2.sh
+        image: maven:latest

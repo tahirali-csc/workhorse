@@ -8,6 +8,7 @@ type JobTransferObject struct {
 	Name           string
 	FileName       string
 	ScriptContents []byte
+	Image          string
 }
 
 type Workflow struct {
@@ -17,4 +18,5 @@ type Workflow struct {
 type Job struct {
 	Name   string
 	Script string
+	Image  string
 }
