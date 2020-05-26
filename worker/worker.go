@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"workhorse/pkg/util"
 	"workhorse/pkg/worker"
@@ -19,10 +20,7 @@ func handleJob(response http.ResponseWriter, request *http.Request) {
 
 	worker.RunJob(conn)
 
-	defer func() {
-		fmt.Println("Closing socket connection")
-		conn.Close()
-	}()
+	defer conn.Close()
 }
 
 func main() {
@@ -34,6 +32,6 @@ func main() {
 	})
 
 	addr := ":8080"
-	fmt.Println("Starting worker node at:::" + addr)
+	log.Println("Starting worker node at:::" + addr)
 	http.ListenAndServe(addr, nil)
 }

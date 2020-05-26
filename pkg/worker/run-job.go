@@ -2,7 +2,7 @@ package worker
 
 import (
 	"bufio"
-	"fmt"
+	"log"
 	"workhorse/pkg/util"
 
 	"github.com/gorilla/websocket"
@@ -11,7 +11,7 @@ import (
 func RunJob(conn *websocket.Conn) {
 	_, msg, err := conn.ReadMessage()
 	if err != nil {
-		fmt.Println("Error in reading message", err)
+		log.Fatal("Error in reading message", err)
 		return
 	}
 
@@ -25,12 +25,17 @@ func RunJob(conn *websocket.Conn) {
 	rd := bufio.NewReader(response)
 
 	for {
-		line, err := rd.ReadString('\n')
+		//TODO: Will review the logic again. Currently stream container logs line by line
+		line, err := rd.ReadBytes('\n')
 		if err != nil {
 			break
 		}
-		conn.WriteMessage(websocket.TextMessage, []byte(line))
+
+		conn.WriteMessage(websocket.BinaryMessage, line)
 	}
 
-	conn.WriteMessage(websocket.CloseMessage, nil)
+	defer func() {
+		log.Print("Sending close message to web socket")
+		conn.WriteMessage(websocket.CloseMessage, nil)
+	}()
 }

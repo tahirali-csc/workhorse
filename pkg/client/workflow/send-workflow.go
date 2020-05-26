@@ -2,19 +2,20 @@ package workflow
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/gorilla/websocket"
 )
 
-func SendWorkFlow(masterNodeIP string, workflowTransferObjBytes []byte) {
-	u := url.URL{Scheme: "ws", Host: masterNodeIP + ":8081", Path: "/runWorkflow"}
+func SendWorkFlow(masterNodeAddress string, workflowTransferObjBytes []byte) {
+	u := url.URL{Scheme: "ws", Host: masterNodeAddress, Path: "/runWorkflow"}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Sending the workflow to server :::" + masterNodeIP)
+	log.Println("Sending the workflow to server :::" + masterNodeAddress)
 	conn.WriteMessage(websocket.BinaryMessage, workflowTransferObjBytes)
 
 	for {
@@ -26,6 +27,7 @@ func SendWorkFlow(masterNodeIP string, workflowTransferObjBytes []byte) {
 		if msgType == websocket.CloseMessage {
 			break
 		} else {
+			//Write to console
 			fmt.Print(string(msg))
 		}
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"workhorse/pkg/server"
@@ -23,7 +24,7 @@ func handleWorkFlow(response http.ResponseWriter, request *http.Request) {
 	server.RunWorkFlowSync(conn, WorkScheduler)
 
 	defer func() {
-		fmt.Println("Closing socket connection")
+		log.Println("Closing socket connection")
 		conn.Close()
 	}()
 }
@@ -49,7 +50,7 @@ func main() {
 		WorkScheduler = server.NewRoundRobinScheduler(workers)
 	}
 
-	fmt.Println("Will use these worker nodes:::", workers)
+	log.Println("Will use these worker nodes:::", workers)
 
 	http.HandleFunc("/runWorkflow", handleWorkFlow)
 	ipAddress := util.GetHostIPAddress()
@@ -60,6 +61,6 @@ func main() {
 
 	//Listen on all network devices
 	addr := ":8081"
-	fmt.Println("Starting master node at:::" + addr)
+	log.Println("Starting master node at:::" + addr)
 	http.ListenAndServe(addr, nil)
 }

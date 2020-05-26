@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -19,12 +20,12 @@ import (
 func createTempFile(contents string, jobFile string) string {
 	jobDir, err := ioutil.TempDir("", "job")
 	if err != nil {
-		fmt.Println("Directory error", err)
+		log.Println("Directory error", err)
 		return ""
 	}
 
 	fullPath := path.Join(jobDir, jobFile)
-	fmt.Println("Creating file::" + fullPath)
+	log.Println("Creating file::" + fullPath)
 
 	f, err := os.Create(fullPath)
 	os.Chmod(fullPath, 0777)
@@ -53,7 +54,7 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 		panic(err)
 	}
 
-	// reader, err := cli.ImagePull(ctx, "docker.io/library/"+job.Image, types.ImagePullOptions{})
+	log.Printf("Pulling an image %s", job.Image)
 	reader, err := cli.ImagePull(ctx, job.Image, types.ImagePullOptions{})
 	if err != nil {
 		panic(err)
@@ -61,7 +62,7 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 	io.Copy(os.Stdout, reader)
 
 	jobDir := createTempFile(string(job.ScriptContents), job.FileName)
-	fmt.Println(jobDir)
+	log.Println(jobDir)
 
 	targetMountDir := getTargetMountDirectory()
 	resp, err := cli.ContainerCreate(ctx, &container.Config{

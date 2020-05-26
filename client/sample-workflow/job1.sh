@@ -1,6 +1,8 @@
 #!/bin/sh
-echo "This is script ###1"
-# ls -la 
-# echo "Sleeping..."
-# sleep 2
+machine=$(hostname)
+echo "This is script #1:: $machine"
+ls -la
+echo "Sleeping..."
+sleep 3s
 date
+echo "Finished script##1"

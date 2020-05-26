@@ -8,14 +8,12 @@ import (
 
 func main() {
 	//Read command line arguments
-	masterNodeIPParam := flag.String("master-node-address", "localhost", "Address of master node")
+	masterNodeAddressParam := flag.String("master-node-address", "localhost", "Address of master node")
 	workflowFileParam := flag.String("workflow-file", "", "Workflow file")
 	flag.Parse()
 
-	masterNodeIP := *masterNodeIPParam
+	masterNodeAddress := *masterNodeAddressParam
 	workflowPath := *workflowFileParam
-
-	// workflowPath = "/home/tahir/workspace/rnd-projects/workhorse/client/sample-workflow/workflow.yaml"
 
 	//Read workflow
 	workflowTransferObj, err := workflow.ReadWorkflow(workflowPath)
@@ -24,6 +22,6 @@ func main() {
 	}
 
 	workflowTransferObjBytes := util.ConvertToByteArray(workflowTransferObj)
-	workflow.SendWorkFlow(masterNodeIP, workflowTransferObjBytes)
+	workflow.SendWorkFlow(masterNodeAddress, workflowTransferObjBytes)
 
 }
