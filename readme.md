@@ -1,7 +1,7 @@
-Prerequisites
+**Prerequisites**
 
-Docker
-Go Installation
+1. Docker
+2. Go Installation
 
 How to run this app on local machine
 
