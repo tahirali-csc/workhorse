@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 	"workhorse/api"
 
@@ -21,6 +22,12 @@ func createTempFile(contents string, jobFile string) string {
 	jobDir, err := ioutil.TempDir("", "job")
 	if err != nil {
 		log.Println("Directory error", err)
+		return ""
+	}
+
+	jobDir, err = filepath.EvalSymlinks(jobDir)
+	if err != nil {
+		log.Println("Symlink error", err)
 		return ""
 	}
 
@@ -84,6 +91,11 @@ func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
 			},
 		},
 	}, nil, "")
+
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
 
 	cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 

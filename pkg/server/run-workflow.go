@@ -56,7 +56,6 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataC
 		//Read the response from worker node
 		msgType, msg, err := workerNodeConn.ReadMessage()
 		if err != nil {
-			log.Fatal(err)
 			break
 		}
 
@@ -71,4 +70,5 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataC
 		log.Println("Finished executing job")
 		workerNodeConn.Close()
 	}()
+
 }
