@@ -19,9 +19,22 @@ From the application directory:
 ./server/server.sh
 ```
 
-3. Open a new terminal tab and run your workflow
+For local testing, server.sh uses local work node process.
+
+```bash
+go run server/*.go --worker-node-address=localhost:8080
+```
+
+3. Open a new terminal tab and run your workflow.
 ```bash
 ./client/client.sh
+```
+
+For local testing, client.sh points to local master node.
+```bash
+go run client/*.go \
+    --master-node-address=localhost:8081 \
+    --workflow-file=./client/sample-workflow/workflow.yaml
 ```
 
 This runs a sample workflow. The example workflow is present at **client/sample-workflow**
