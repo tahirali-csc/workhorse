@@ -55,17 +55,45 @@ jobs:
 
 For this scenario, we can setup a cluster using any hypervisor like VirtualBox or VMWare. For this example, we setup following:
 
-1. Setup two Ubuntu Worker Nodes.
-2. Setup one Ubuntu Master Node.
-3. Run worker node process on Worker Node.
+1. Setup three Ubuntu VM on VirtualBox. Use NAT gateway adapter for internet and Hostonly adapter for local network.
+
+2. Do a git clone of the project at worker node # 1. Start the worker node process
 ```bash
 ./worker/worker.sh
 ```
-4. Run master node process on master node
+3. Do a git clone of the project at worker node # 2. Start the worker node process
 ```bash
-./server/server.sh --worker-node-address=ip address of worker node 1:8080, ip address of worker node 2:8080
+./worker/worker.sh
 ```
-5. From a different machine, run client workflow
+
+3. Do a git clone of the project at master node VM. Start the master node process
 ```bash
-./client/client.sh --master-node-address=[master node address]:8081
+./worker/server.sh
 ```
+
+Make sure to point to worker nodes. You can get the ip by running ```ifconfig``` command and check the virtual box network interface ip
+
+```text
+Assuming worker node # 1 IP=192.168.56.107
+Assuming worker node # 2 IP=192.168.56.103
+```
+
+```bash
+go run server/*.go 
+        --worker-node-address=192.168.56.107:8080,192.168.56.103:8080 \
+        --scheduler=roundrobin
+```        
+
+4. From a different machine, run client workflow
+```bash
+./client/client.sh
+```
+
+Make sure to point to master node ip address. Assuming maste node ip is 192.168.56.102
+
+
+```bash
+go run client/*.go \
+     --master-node-address=192.168.56.102:8081 \
+     --workflow-file=./client/sample-workflow/workflow.yaml
+```     
