@@ -7,4 +7,3 @@ jobs:
         name: job2
         script: job2.sh
         image: alpine
-        # image: maven:latest
