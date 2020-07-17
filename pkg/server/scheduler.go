@@ -74,7 +74,7 @@ func (mss *MemoryScheduler) GetNext() WorkerNode {
 			return true
 		})
 
-		node.Address = runnableNodes[0].IP
+		node.Address = runnableNodes[0].IP + ":8080"
 	}
 	//fmt.Print("Selected Node::", node)
 	return node
