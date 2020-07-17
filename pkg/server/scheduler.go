@@ -74,6 +74,7 @@ func (mss *MemoryScheduler) GetNext() WorkerNode {
 			return true
 		})
 
+		//TODO: Fixing worker node port number
 		node.Address = runnableNodes[0].IP + ":8080"
 	}
 	//fmt.Print("Selected Node::", node)
