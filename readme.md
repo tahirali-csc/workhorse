@@ -71,17 +71,6 @@ For this scenario, we can setup a cluster using any hypervisor like VirtualBox o
 ./worker/server.sh
 ```
 
-Make sure to point to worker nodes. You can get the ip by running ```ifconfig``` command and check the virtual box network interface ip
-
-```text
-Assuming worker node # 1 IP=192.168.56.107
-Assuming worker node # 2 IP=192.168.56.103
-```
-
-```bash
-go run server/*.go
-        --scheduler=random
-```        
 
 4. From a different machine, run client workflow
 ```bash
