@@ -4,7 +4,6 @@
 #     --master-node-address=192.168.56.102:8081 \
 #     --workflow-file=./client/sample-workflow/workflow.yaml
 
-#Uses local master node
-go run client/*.go \
+go run ./cmd/client/*.go \
     --master-node-address=localhost:8081 \
-    --workflow-file=./client/sample-workflow/workflow.yaml
+    --workflow-file=./hack/client/sample-workflow/workflow.yaml

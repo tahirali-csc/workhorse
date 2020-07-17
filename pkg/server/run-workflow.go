@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"net/url"
-	"workhorse/api"
+	"workhorse/pkg/api"
 	"workhorse/pkg/util"
 
 	"github.com/gorilla/websocket"
@@ -70,5 +70,4 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataC
 		log.Println("Finished executing job")
 		workerNodeConn.Close()
 	}()
-
 }

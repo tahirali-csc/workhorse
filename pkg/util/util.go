@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"log"
 	"math/rand"
-	"workhorse/api"
+	"workhorse/pkg/api"
 )
 
 func ConvertToWorkflowObject(data []byte) *api.WorkflowTransferObject {

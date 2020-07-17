@@ -3,7 +3,7 @@ package workflow
 import (
 	"io/ioutil"
 	"path"
-	"workhorse/api"
+	"workhorse/pkg/api"
 
 	"gopkg.in/yaml.v2"
 )
