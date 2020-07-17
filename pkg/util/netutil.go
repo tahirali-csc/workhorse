@@ -24,15 +24,20 @@ func GetHostIPAddress() string {
 
 func GetSenderIP(request *http.Request) string {
 
-	forwarded := request.Header.Get("X-FORWARDED-FOR")
-	senderIP := ""
-	if forwarded != "" {
-		senderIP = forwarded
-	} else {
-		//senderIP = request.RemoteAddr
-		//senderIP = request.Host
-		senderIP = "localhost:8080"
-	}
+	//forwarded := request.Header.Get("X-FORWARDED-FOR")
+	//senderIP := ""
+	//if forwarded != "" {
+	//	senderIP = forwarded
+	//} else {
+	//	//senderIP = request.RemoteAddr
+	//	//senderIP = request.Host
+	//	senderIP = "localhost:8080"
+	//}
+	//[::1]:55021
 
-	return senderIP
+	if strings.Contains(request.RemoteAddr, "[::1]") {
+		return "localhost"
+	}
+	return strings.Split(request.RemoteAddr, ":")[0]
+
 }

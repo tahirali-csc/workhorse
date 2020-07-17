@@ -28,7 +28,8 @@ func (random *RandomScheduler) GetNext() WorkerNode {
 	nodes := random.NodeLister.getActiveWorkerNodes()
 	totalNodes := len(nodes)
 	idx := util.RandomBetween(0, totalNodes)
-	node := WorkerNode{Address: nodes[idx].IP}
+	//TODO: Fixing worker node port number
+	node := WorkerNode{Address: nodes[idx].IP + ":8080"}
 	log.Println("Randomly choosing :: ", node.Address)
 	return node
 }
