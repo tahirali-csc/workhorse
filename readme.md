@@ -22,7 +22,7 @@ From the application directory:
 For local testing, server.sh uses local work node process.
 
 ```bash
-go run server/*.go --worker-node-address=localhost:8080
+go run server/*.go
 ```
 
 3. Open a new terminal tab and run your workflow.
@@ -34,7 +34,7 @@ For local testing, client.sh points to local master node.
 ```bash
 go run client/*.go \
     --master-node-address=localhost:8081 \
-    --workflow-file=./client/sample-workflow/workflow.yaml
+    --workflow-file=./hack/client/sample-workflow/workflow.yaml
 ```
 
 This runs a sample workflow. The example workflow is present at **client/sample-workflow**
@@ -79,9 +79,8 @@ Assuming worker node # 2 IP=192.168.56.103
 ```
 
 ```bash
-go run server/*.go 
-        --worker-node-address=192.168.56.107:8080,192.168.56.103:8080 \
-        --scheduler=roundrobin
+go run server/*.go
+        --scheduler=random
 ```        
 
 4. From a different machine, run client workflow
