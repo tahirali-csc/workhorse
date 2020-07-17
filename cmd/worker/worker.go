@@ -40,7 +40,6 @@ func main() {
 
 	ipAddress := util.GetHostIPAddress()
 	http.HandleFunc("/ping", func(w http.ResponseWriter, request *http.Request) {
-		_ = util.GetSenderIP(request)
 		fmt.Fprintf(w, "Hello from worker::: %s!", ipAddress)
 	})
 
