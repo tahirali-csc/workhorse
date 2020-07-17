@@ -3,7 +3,7 @@ package server
 import (
 	"sync"
 	"time"
-	"workhorse/api"
+	"workhorse/pkg/api"
 )
 
 type StatsManager struct {
@@ -15,7 +15,7 @@ func (m *StatsManager) UpdateStats(ip string, stats api.NodeStats) {
 	nodeInfo := api.NodeInfo{
 		MemoryStats: *stats.MemoryStats,
 		LastUpdated: time.Now(),
-		IP:ip,
+		IP:          ip,
 	}
 
 	m.statsMap.Store(ip, nodeInfo)

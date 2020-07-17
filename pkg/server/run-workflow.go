@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"net/url"
-	"workhorse/api"
+	"workhorse/pkg/api"
 	"workhorse/pkg/util"
 
 	"github.com/gorilla/websocket"
@@ -30,21 +30,9 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 		defer close(dataChan)
 	}()
 
-	// Open file using READ & WRITE permission.
-	//file, err := os.OpenFile("/Users/tahir/workspace/worklogs/dat1", os.O_RDWR, 0644)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//
-	//defer func() {
-	//	file.Sync()
-	//	file.Close()
-	//}()
-
 	//Stream the response and send to client
 	for msg := range dataChan {
 		clientConn.WriteMessage(websocket.BinaryMessage, msg)
-		//file.Write(msg)
 	}
 
 	log.Println("Finished the worflow")
@@ -82,9 +70,4 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataC
 		log.Println("Finished executing job")
 		workerNodeConn.Close()
 	}()
-
-}
-
-func writeFile() {
-
 }

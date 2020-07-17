@@ -3,7 +3,8 @@ package server
 import (
 	"log"
 	"sort"
-	"workhorse/api"
+
+	"workhorse/pkg/api"
 	"workhorse/pkg/util"
 )
 

@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/mackerelio/go-osstat/cpu"
-	"github.com/mackerelio/go-osstat/memory"
 	"log"
 	"net/http"
 	"time"
-	"workhorse/api"
+	"workhorse/pkg/api"
+
+	"github.com/mackerelio/go-osstat/cpu"
+	"github.com/mackerelio/go-osstat/memory"
 )
 
 func KeepSendingStats(config *api.ServerConfig) {

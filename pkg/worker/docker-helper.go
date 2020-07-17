@@ -10,7 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"time"
-	"workhorse/api"
+	"workhorse/pkg/api"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"

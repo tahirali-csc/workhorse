@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
-	"workhorse/api"
+	"workhorse/pkg/api"
 	"workhorse/pkg/util"
 	"workhorse/pkg/worker"
+
+	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -35,7 +36,6 @@ func main() {
 	}
 	go worker.KeepSendingStats(serverInfo)
 
-
 	http.HandleFunc("/runJob", handleJob)
 
 	ipAddress := util.GetHostIPAddress()
@@ -47,7 +47,7 @@ func main() {
 	addr := ":8080"
 	log.Println("Starting worker node at:::" + addr)
 
-	if err := http.ListenAndServe(addr, nil); err != nil{
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Print(err)
 	}
 }

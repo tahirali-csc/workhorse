@@ -7,7 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"workhorse/api"
+
+	"workhorse/pkg/api"
 	"workhorse/pkg/server"
 	"workhorse/pkg/util"
 
@@ -69,29 +70,18 @@ func handleReadLogs(response http.ResponseWriter, request *http.Request) {
 
 func main() {
 	//Read command line arguments
-	//workerNodeAddrParams := flag.String("worker-node-address", "", "Comma separted ip address of worker nodes")
 	scheduleParam := flag.String("scheduler", "random", "Worker node schdeduler")
 	flag.Parse()
-
-	//workers := []server.WorkerNode{}
-	//if len(*workerNodeAddrParams) == 0 {
-	//	workers = append(workers, server.WorkerNode{Address: "localhost:8080"})
-	//} else {
-	//	for _, w := range strings.Split(*workerNodeAddrParams, ",") {
-	//		workers = append(workers, server.WorkerNode{Address: w})
-	//	}
-	//}
 
 	lister := &server.WorkerNodeLister{StatsManager: &sm}
 
 	if *scheduleParam == "random" {
 		WorkScheduler = server.NewRandomScheduler(lister)
-	} else{
+	} else {
 		WorkScheduler = server.NewMemoryBasedScheduler(lister)
 	}
 	//} else if *scheduleParam == "roundroubin" {
 	//	WorkScheduler = server.NewRoundRobinScheduler(lister)
-
 
 	//log.Println("Will use these worker nodes:::", workers)
 
