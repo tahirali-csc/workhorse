@@ -3,9 +3,14 @@ package server
 import (
 	"log"
 	"net/url"
+	"os"
+	"path"
+	"sync"
 	"workhorse/pkg/api"
+	"workhorse/pkg/db"
 	"workhorse/pkg/util"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -18,27 +23,68 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 		return
 	}
 
-	dataChan := make(chan []byte)
+	// dataChan := make(chan []byte)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 
 	//Sequentially send the job to worker node
+	// go func() {
+	// 	wtObj := util.ConvertToWorkflowObject(msg)
+	// 	for _, job := range wtObj.Jobs {
+	// 		sendJobToWorkerNodeSync(job, scheduler.GetNext(), dataChan)
+	// 	}
+
+	// 	defer close(dataChan)
+	// }()
+	const baseDir = "/Users/tahir/workspace/workhorse-logs"
+
 	go func() {
+
 		wtObj := util.ConvertToWorkflowObject(msg)
+		// for _, job := range wtObj.Jobs {
+		// 	sendJobToWorkerNodeSync(job, scheduler.GetNext(), dataChan)
+		// }
+
+		buildId := db.CreateBuild("Started")
+
 		for _, job := range wtObj.Jobs {
-			sendJobToWorkerNodeSync(job, scheduler.GetNext(), dataChan)
+			folderName := uuid.New()
+			jobPath := path.Join(baseDir, "test-app", folderName.String())
+			os.MkdirAll(jobPath, 0755)
+			file, _ := os.Create(path.Join(jobPath, "logs.txt"))
+
+			jId := db.CreateBuildJob(buildId, job.Name, "Started", file.Name())
+			log.Println("DB Job ID::", jId)
+			sendJobToWorkerNodeSync(job, scheduler.GetNext(), file)
+			db.UpdateBuildJob(jId, "Finished")
 		}
 
-		defer close(dataChan)
+		wg.Done()
+		db.UpdateBuild(buildId, "End")
+		clientConn.Close()
 	}()
 
+	// file, err := os.Create("/Users/tahir/workspace/workhorse-logs/log1.txt")
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+
+	// log.Println("Temp file::", file.Name())
+	// defer file.Close()
+
+	wg.Wait()
+
 	//Stream the response and send to client
-	for msg := range dataChan {
-		clientConn.WriteMessage(websocket.BinaryMessage, msg)
-	}
+	// for msg := range dataChan {
+	// 	clientConn.WriteMessage(websocket.BinaryMessage, msg)
+	// 	file.WriteString(string(msg))
+	// }
 
 	log.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataChan chan []byte) {
+func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, logFile *os.File) {
 
 	log.Println("Sending the job at " + worker.Address)
 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}
@@ -62,7 +108,7 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataC
 		if msgType == websocket.CloseMessage {
 			break
 		} else {
-			dataChan <- msg
+			logFile.WriteString(string(msg))
 		}
 	}
 
@@ -71,3 +117,37 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataC
 		workerNodeConn.Close()
 	}()
 }
+
+// func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataChan chan []byte) {
+
+// 	log.Println("Sending the job at " + worker.Address)
+// 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}
+
+// 	workerNodeConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 		return
+// 	}
+
+// 	//Convert the job object to byte array
+// 	workerNodeConn.WriteMessage(websocket.BinaryMessage, util.ConvertToByteArray(job))
+
+// 	for {
+// 		//Read the response from worker node
+// 		msgType, msg, err := workerNodeConn.ReadMessage()
+// 		if err != nil {
+// 			break
+// 		}
+
+// 		if msgType == websocket.CloseMessage {
+// 			break
+// 		} else {
+// 			dataChan <- msg
+// 		}
+// 	}
+
+// 	defer func() {
+// 		log.Println("Finished executing job")
+// 		workerNodeConn.Close()
+// 	}()
+// }
