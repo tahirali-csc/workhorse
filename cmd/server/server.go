@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"workhorse/pkg/api"
+	"workhorse/pkg/rest"
 	"workhorse/pkg/server"
 	"workhorse/pkg/util"
 
@@ -68,6 +69,12 @@ func handleReadLogs(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprint(response, string(data))
 }
 
+func registerAPIEndPoints() {
+	http.HandleFunc("/projectList", rest.GetProjectListHandler)
+	http.HandleFunc("/projectBuilds", rest.GetProjectBuilds)
+	http.HandleFunc("/buildLogs", rest.GetBuildLogs)
+}
+
 func main() {
 	//Read command line arguments
 	scheduleParam := flag.String("scheduler", "random", "Worker node schdeduler")
@@ -94,6 +101,7 @@ func main() {
 	})
 
 	http.HandleFunc("/read", handleReadLogs)
+	registerAPIEndPoints()
 
 	//Listen on all network devices
 	addr := ":8081"

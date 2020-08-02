@@ -18,13 +18,13 @@ func CreateBuild(state string) int {
 	defer db.Close()
 
 	insertStmt := `
-	INSERT INTO build (status, start_ts)
-	VALUES ($1, $2)
+	INSERT INTO build (status, project_id, start_ts)
+	VALUES ($1, $2, $3)
 	RETURNING id
 	`
 
 	id := -1
-	err = db.QueryRow(insertStmt, "Started", time.Now()).Scan(&id)
+	err = db.QueryRow(insertStmt, "Started", 1, time.Now()).Scan(&id)
 	log.Println("ID:::", id)
 	if err != nil {
 		log.Println(err)

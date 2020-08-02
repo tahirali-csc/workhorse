@@ -48,3 +48,15 @@ type ServerConfig struct {
 	Address string
 	Port    uint
 }
+
+type Project struct {
+	ID   int
+	Name string
+}
+
+type ProjectBuild struct {
+	ID      int
+	Status  string
+	StartTs time.Time
+	EndTs   time.Time
+}
