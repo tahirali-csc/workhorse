@@ -17,7 +17,7 @@ export default class ProjectList extends React.Component {
     }
 
     getProjectBuildURL(o) {
-        return "/projectStatus/projectId=" + o.ID
+        return "/projectStatus/projectId=" + o.ID + "/name=" + o.Name
     }
 
     render() {

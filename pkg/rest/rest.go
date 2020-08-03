@@ -50,7 +50,8 @@ func GetProjectBuilds(response http.ResponseWriter, request *http.Request) {
 	pid := request.URL.Query().Get("projectId")
 	fmt.Println(pid)
 
-	json, _ := json.Marshal(getProjectBuild(1))
+	prjId, _ := strconv.Atoi(pid)
+	json, _ := json.Marshal(getProjectBuild(prjId))
 	response.Header().Set("Content-Type", "application/json")
 	response.Write(json)
 }
@@ -110,7 +111,7 @@ func getProjectBuild(projectId int) []api.ProjectBuild {
 		var status string
 		var startTs, endTs time.Time
 
-		rows.Scan(&id, &status, startTs, endTs)
+		rows.Scan(&id, &status, &startTs, &endTs)
 
 		plist = append(plist, api.ProjectBuild{
 			ID:      id,

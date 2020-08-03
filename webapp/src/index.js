@@ -19,7 +19,7 @@ ReactDOM.render(
         <Router>
           <Switch>
             <Route exact path='/' component={ProjectList} />
-            <Route exact path='/projectStatus/:projectId' component={ProjectStatus} />
+            <Route exact path='/projectStatus/:projectId/:name' component={ProjectStatus} />
             <Route exact path='/buildLogs/:buildId' component={BuildLogs} />
           </Switch>
         </Router>
