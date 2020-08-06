@@ -21,7 +21,7 @@ export default class BuildLogs extends React.Component {
                     __html: ""
                 }
             },
-            textLogs : "",
+            textLogs: "",
             source: new EventSource("http://localhost:8081/buildLogs?buildId=" + buildId),
         }
 
@@ -31,13 +31,19 @@ export default class BuildLogs extends React.Component {
         })
 
         this.state.source.addEventListener('message', message => {
-            let m = this.state.textLogs + message.data
-            let html = convert.toHtml(m)
+            // let m = this.state.textLogs + message.data
+            let html = this.state.textLogs + "<br/>" + convert.toHtml(message.data)
+            // let html = this.state.textLogs + "<br/>" + message.data
+            // let html = this.state.textLogs + "<br/>" + message.data
+            console.log("--Start--")
+            console.log('---Data:---', html)
+            console.log("---End-----")
+
             this.setState({
-                textLogs : m,
-                logs: ()=>{
+                textLogs: html,
+                logs: () => {
                     return {
-                        __html : html
+                        __html: html
                     }
                 }
             })
@@ -48,7 +54,10 @@ export default class BuildLogs extends React.Component {
         return (
             <div>
                 <pre>
-                    <div style={{ "text-align": "left", "font-size": "12px" }}
+                    <div style={{
+                        "text-align": "left",
+                         "font-size": "13px"
+                    }}
                         dangerouslySetInnerHTML={this.state.logs()} />
                 </pre>
             </div>

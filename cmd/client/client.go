@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"workhorse/pkg/client/workflow"
-	"workhorse/pkg/util"
 )
 
 func main() {
@@ -16,12 +15,13 @@ func main() {
 	workflowPath := *workflowFileParam
 
 	//Read workflow
-	workflowTransferObj, err := workflow.ReadWorkflow(workflowPath)
+	reader := workflow.Reader{}
+	workflowTransferObj, err := reader.ReadWorkflow(workflowPath)
 	if err != nil {
 		panic(err)
 	}
 
-	workflowTransferObjBytes := util.ConvertToByteArray(workflowTransferObj)
-	workflow.SendWorkFlow(masterNodeAddress, workflowTransferObjBytes)
-
+	//Execute workflow
+	executor := workflow.Executor{}
+	executor.Execute(masterNodeAddress, workflowTransferObj)
 }

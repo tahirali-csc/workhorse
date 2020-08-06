@@ -11,8 +11,7 @@ import ProjectStatus from './ProjectStatus/ProjectStatus';
 import BuildLogs from './BuildLogs/BuildLogs';
 
 ReactDOM.render(
-  <React.StrictMode>
-    {/* <App /> */}
+  
     <div>
       <Header />
       <div>
@@ -25,7 +24,7 @@ ReactDOM.render(
         </Router>
       </div>
     </div>
-  </React.StrictMode>,
+  ,
   document.getElementById('root')
 );
 

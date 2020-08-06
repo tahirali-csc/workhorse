@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 machine=$(hostname)
 echo "This is script #2:: $machine"
 ls -la /etc

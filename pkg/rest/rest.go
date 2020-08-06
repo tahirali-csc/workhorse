@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 	"workhorse/pkg/api"
 
@@ -156,24 +155,46 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 		statChann := make(chan bool)
 		ticker := time.NewTicker(time.Second * 10)
 		go func() {
+			checkStatus := func() bool {
+				checkStatus := `
+						SELECT status FROM build_jobs WHERE id=$1
+					`
+				var _status string
+				row := db.QueryRow(checkStatus, bj_id)
+				row.Scan(&_status)
+
+				if _status == "Finished" {
+					return true
+				}
+
+				return false
+			}
+
+			if checkStatus() {
+				statChann <- true
+				return
+			}
+
 			for {
 				select {
 				case <-ticker.C:
-					checkStatus := `
-						SELECT status FROM build_jobs WHERE id=$1
-					`
-
-					var _status string
-					row := db.QueryRow(checkStatus, bj_id)
-					row.Scan(&_status)
-
-					if _status == "Finished" {
+					if checkStatus() {
 						statChann <- true
 						return
 					}
+					// checkStatus := `
+					// 	SELECT status FROM build_jobs WHERE id=$1
+					// `
+					// var _status string
+					// row := db.QueryRow(checkStatus, bj_id)
+					// row.Scan(&_status)
+
+					// if _status == "Finished" {
+					// 	statChann <- true
+					// 	return
+					// }
 				}
 			}
-
 		}()
 
 	loop:
@@ -181,8 +202,10 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 			by, err := r.ReadBytes('\n')
 			if err == nil {
 				line := string(by)
-				// fmt.Fprintf(response, "data: "+line)
-				response.Write(formatSSE("message", line))
+				// response.Write(formatSSE("message", line))
+				// response.Write([]byte(line))
+				log.Println("Sending::", line)
+				fmt.Fprintf(response, "data: %s\n\n", line)
 				f.Flush()
 			}
 
@@ -196,26 +219,30 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 		for {
 			by, err := r.ReadBytes('\n')
 			if err != nil {
-				log.Println("Goin quit")
+				log.Println("Have read logs")
 				break
 			}
 
 			line := string(by)
-			// fmt.Fprintf(response, "data: "+line)
-			response.Write(formatSSE("message", line))
+			// response.Write(formatSSE("message", line))
+			// response.Write(
+			fmt.Fprintf(response, "data: %s\n\n", line)
+
 			f.Flush()
 		}
 
-		log.Println("Going next!!")
+		log.Println("Going to read next job")
 	}
 
 }
 
 func formatSSE(event string, data string) []byte {
 	eventPayload := "event: " + event + "\n"
-	dataLines := strings.Split(data, "\n")
-	for _, line := range dataLines {
-		eventPayload = eventPayload + "data: " + line + "\n"
-	}
-	return []byte(eventPayload + "\n")
+	// dataLines := strings.Split(data, "\n")
+	// for _, line := range dataLines {
+	// 	eventPayload = eventPayload + "data: " + line + "\n"
+	// }
+	eventPayload = eventPayload + "data: " + data + "\n\n"
+	// eventPayload = eventPayload + "data: " + data + "\n"
+	return []byte(eventPayload + "\n\n")
 }

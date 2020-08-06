@@ -54,7 +54,7 @@ func getTargetMountDirectory() string {
 		t.Hour(), t.Minute(), t.Second())
 }
 
-func runDockerContainer(job *api.JobTransferObject) io.ReadCloser {
+func runDockerContainer(job *api.WorkflowJob) io.ReadCloser {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {

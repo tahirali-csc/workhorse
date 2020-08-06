@@ -4,13 +4,11 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"path"
 	"sync"
 	"workhorse/pkg/api"
 	"workhorse/pkg/db"
 	"workhorse/pkg/util"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -46,22 +44,29 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 		// 	sendJobToWorkerNodeSync(job, scheduler.GetNext(), dataChan)
 		// }
 
-		buildId := db.CreateBuild("Started")
+		// buildId := db.CreateBuild("Started")
 
-		for _, job := range wtObj.Jobs {
-			folderName := uuid.New()
-			jobPath := path.Join(baseDir, "test-app", folderName.String())
-			os.MkdirAll(jobPath, 0755)
-			file, _ := os.Create(path.Join(jobPath, "logs.txt"))
+		// for _, job := range wtObj.Jobs {
+		// 	folderName := uuid.New()
+		// 	jobPath := path.Join(baseDir, "test-app", folderName.String())
+		// 	os.MkdirAll(jobPath, 0755)
+		// 	file, _ := os.Create(path.Join(jobPath, "logs.txt"))
 
-			jId := db.CreateBuildJob(buildId, job.Name, "Started", file.Name())
-			log.Println("DB Job ID::", jId)
-			sendJobToWorkerNodeSync(job, scheduler.GetNext(), file)
-			db.UpdateBuildJob(jId, "Finished")
+		// 	jId := db.CreateBuildJob(buildId, job.Name, "Started", file.Name())
+		// 	log.Println("DB Job ID::", jId)
+		// 	sendJobToWorkerNodeSync(job, scheduler.GetNext(), file)
+		// 	db.UpdateBuildJob(jId, "Finished")
+		// }
+
+		bid, bbj := db.CreateBuildStructure(wtObj.Jobs)
+
+		for i, job := range wtObj.Jobs {
+			sendJobToWorkerNodeSync(job, scheduler.GetNext(), bbj[i].File)
+			db.UpdateBuildJob(bbj[i].JobID, "Finished")
 		}
 
 		wg.Done()
-		db.UpdateBuild(buildId, "End")
+		db.UpdateBuild(bid, "End")
 		clientConn.Close()
 	}()
 
@@ -84,7 +89,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 	log.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, logFile *os.File) {
+func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *os.File) {
 
 	log.Println("Sending the job at " + worker.Address)
 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}
@@ -118,7 +123,7 @@ func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, logFi
 	}()
 }
 
-// func sendJobToWorkerNodeSync(job api.JobTransferObject, worker WorkerNode, dataChan chan []byte) {
+// func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, dataChan chan []byte) {
 
 // 	log.Println("Sending the job at " + worker.Address)
 // 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}

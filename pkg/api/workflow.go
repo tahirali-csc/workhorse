@@ -2,26 +2,17 @@ package api
 
 import "time"
 
-type WorkflowTransferObject struct {
-	Jobs []JobTransferObject
+type Workflow struct {
+	Jobs []WorkflowJob
 }
 
-type JobTransferObject struct {
+type WorkflowJob struct {
 	Name           string
 	FileName       string
 	ScriptContents []byte
 	Image          string
 }
 
-type Workflow struct {
-	Jobs []Job
-}
-
-type Job struct {
-	Name   string
-	Script string
-	Image  string
-}
 
 type NodeStats struct {
 	*CPUStats
