@@ -13,7 +13,6 @@ type WorkflowJob struct {
 	Image          string
 }
 
-
 type NodeStats struct {
 	*CPUStats
 	*MemoryStats
@@ -50,4 +49,9 @@ type ProjectBuild struct {
 	Status  string
 	StartTs time.Time
 	EndTs   time.Time
+}
+
+type BuildJobInfo struct {
+	Id      int    `json:"id"`
+	JobName string `json:"name"`
 }

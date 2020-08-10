@@ -4,18 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"os"
-	"path"
 	"time"
 	"workhorse/pkg/api"
 
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+
+	"workhorse/pkg/server/buildlogs"
 )
 
 type BuildJobDTO struct {
-	JobID int
-	File  *os.File
+	JobID    int
+	FileLogs *buildlogs.FileLogs
 }
 
 func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
@@ -41,10 +40,12 @@ func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
 	for _, j := range jobs {
 
 		const baseDir = "/Users/tahir/workspace/workhorse-logs"
-		folderName := uuid.New()
-		jobPath := path.Join(baseDir, "test-app", folderName.String())
-		os.MkdirAll(jobPath, 0755)
-		file, _ := os.Create(path.Join(jobPath, "logs.txt"))
+
+		fileLogs := buildlogs.NewFileLogs(baseDir)
+		// folderName := uuid.New()
+		// jobPath := path.Join(baseDir, "test-app", folderName.String())
+		// os.MkdirAll(jobPath, 0755)
+		// file, _ := os.Create(path.Join(jobPath, "logs.txt"))
 
 		insertStmt := `
 		INSERT INTO build_jobs (build_id, job_name, status, build_log_file, start_ts)
@@ -53,13 +54,13 @@ func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
 		`
 
 		id := -1
-		err = tx.QueryRow(insertStmt, buildId, j.Name, "Started", file.Name(), time.Now()).Scan(&id)
+		err = tx.QueryRow(insertStmt, buildId, j.Name, "Started", fileLogs.Path, time.Now()).Scan(&id)
 		log.Println("Job ID:::", id)
 		if err != nil {
 			log.Println(err)
 		}
 
-		bbj = append(bbj, BuildJobDTO{JobID: id, File: file})
+		bbj = append(bbj, BuildJobDTO{JobID: id, FileLogs: fileLogs})
 	}
 
 	tx.Commit()

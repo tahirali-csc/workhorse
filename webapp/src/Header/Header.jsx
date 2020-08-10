@@ -1,19 +1,20 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
+import React from 'react'
+import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box';
+import { Avatar } from '@material-ui/core'
 
-export default class Header extends React.Component {
-    render() {
-        return (
-            <AppBar position="static">
-                <Toolbar>
-                    <Typography variant="h6" >
-                        WorkHorse
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-        )
-    }
+export default function Header() {
+    return (
+        // <div style={{ width: '100%', 'background' : '#152447'}}>
+        <Box bgcolor="primary.main">
+            <Box display="flex" p={1}>
+                <Box p={1} flexGrow={1} color="secondary.constrastText" >
+                    <Typography variant="h4">Work Horse</Typography>
+                </Box>
+                <Box p={1} >
+                    <Avatar></Avatar>
+                </Box>
+            </Box>
+        </Box>
+    );
 }

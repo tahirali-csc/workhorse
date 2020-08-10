@@ -3,10 +3,10 @@ package server
 import (
 	"log"
 	"net/url"
-	"os"
 	"sync"
 	"workhorse/pkg/api"
 	"workhorse/pkg/db"
+	"workhorse/pkg/server/buildlogs"
 	"workhorse/pkg/util"
 
 	"github.com/gorilla/websocket"
@@ -26,16 +26,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	//Sequentially send the job to worker node
-	// go func() {
-	// 	wtObj := util.ConvertToWorkflowObject(msg)
-	// 	for _, job := range wtObj.Jobs {
-	// 		sendJobToWorkerNodeSync(job, scheduler.GetNext(), dataChan)
-	// 	}
-
-	// 	defer close(dataChan)
-	// }()
-	const baseDir = "/Users/tahir/workspace/workhorse-logs"
+	const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
 
 	go func() {
 
@@ -61,7 +52,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 		bid, bbj := db.CreateBuildStructure(wtObj.Jobs)
 
 		for i, job := range wtObj.Jobs {
-			sendJobToWorkerNodeSync(job, scheduler.GetNext(), bbj[i].File)
+			sendJobToWorkerNodeSync(job, scheduler.GetNext(), bbj[i].FileLogs)
 			db.UpdateBuildJob(bbj[i].JobID, "Finished")
 		}
 
@@ -89,7 +80,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 	log.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *os.File) {
+func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *buildlogs.FileLogs) {
 
 	log.Println("Sending the job at " + worker.Address)
 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}
@@ -100,8 +91,9 @@ func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *os
 		return
 	}
 
+	jobByteArray, _ := util.ConvertToByteArray(job)
 	//Convert the job object to byte array
-	workerNodeConn.WriteMessage(websocket.BinaryMessage, util.ConvertToByteArray(job))
+	workerNodeConn.WriteMessage(websocket.BinaryMessage, jobByteArray)
 
 	for {
 		//Read the response from worker node
@@ -113,7 +105,8 @@ func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *os
 		if msgType == websocket.CloseMessage {
 			break
 		} else {
-			logFile.WriteString(string(msg))
+			// logFile.WriteString(string(msg))
+			logFile.Write(msg)
 		}
 	}
 

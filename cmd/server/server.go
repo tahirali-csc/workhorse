@@ -73,6 +73,7 @@ func registerAPIEndPoints() {
 	http.HandleFunc("/projectList", rest.GetProjectListHandler)
 	http.HandleFunc("/projectBuilds", rest.GetProjectBuilds)
 	http.HandleFunc("/buildLogs", rest.GetBuildLogs)
+	http.HandleFunc("/buildJobs", rest.GetBuildJobs)
 }
 
 func main() {

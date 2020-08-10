@@ -15,6 +15,15 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func GetBuildJobs(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Access-Control-Allow-Origin", "*")
+	buildId := request.URL.Query().Get("buildId")
+	b, _ := strconv.Atoi(buildId)
+	json, _ := json.Marshal(getBuildJobList(b))
+	response.Header().Set("Content-Type", "application/json")
+	response.Write(json)
+}
+
 func GetProjectListHandler(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Access-Control-Allow-Origin", "*")
 	json, _ := json.Marshal(getProjectList())
@@ -99,6 +108,7 @@ func getProjectBuild(projectId int) []api.ProjectBuild {
 
 	selectStmt := `
 	SELECT id, status, start_ts, end_ts FROM build WHERE project_id=$1
+	ORDER BY start_ts DESC 
 	`
 
 	rows, _ := db.Query(selectStmt, projectId)
@@ -205,6 +215,7 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 				// response.Write(formatSSE("message", line))
 				// response.Write([]byte(line))
 				log.Println("Sending::", line)
+				fmt.Fprintf(response, "id: %d\n", bj_id)
 				fmt.Fprintf(response, "data: %s\n\n", line)
 				f.Flush()
 			}
@@ -226,6 +237,7 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 			line := string(by)
 			// response.Write(formatSSE("message", line))
 			// response.Write(
+			fmt.Fprintf(response, "id: %d\n", bj_id)
 			fmt.Fprintf(response, "data: %s\n\n", line)
 
 			f.Flush()
@@ -245,4 +257,38 @@ func formatSSE(event string, data string) []byte {
 	eventPayload = eventPayload + "data: " + data + "\n\n"
 	// eventPayload = eventPayload + "data: " + data + "\n"
 	return []byte(eventPayload + "\n\n")
+}
+
+func getBuildJobList(buildId int) []api.BuildJobInfo {
+	var conninfo string = "dbname=postgres user=dev password=dev host=localhost sslmode=disable"
+	db, err := sql.Open("postgres", conninfo)
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
+	selectStmt := `
+	SELECT id,job_name FROM build_jobs
+	WHERE build_id=$1
+	ORDER BY id ASC
+	`
+
+	rows, _ := db.Query(selectStmt, buildId)
+	defer rows.Close()
+
+	plist := []api.BuildJobInfo{}
+	for rows.Next() {
+		var id int
+		var name string
+
+		rows.Scan(&id, &name)
+
+		plist = append(plist, api.BuildJobInfo{
+			Id:      id,
+			JobName: name,
+		})
+	}
+
+	return plist
 }

@@ -21,8 +21,9 @@ import { Typography } from '@material-ui/core';
 
 const StyledTableCell = withStyles((theme) => ({
     head: {
-        backgroundColor: theme.palette.common.black,
+        backgroundColor: '#2074d4',
         color: theme.palette.common.white,
+        fontSize : 16
     },
     body: {
         fontSize: 14,
@@ -67,8 +68,11 @@ export default class ProjectStatus extends React.Component {
                         <Table size="medium" aria-label="a dense table">
                             <TableHead>
                                 <TableRow>
+                                    <StyledTableCell>Build#</StyledTableCell>
+                                    <StyledTableCell>Triggered By</StyledTableCell>
                                     <StyledTableCell>Build Start</StyledTableCell>
                                     <StyledTableCell>Build End</StyledTableCell>
+                                    <StyledTableCell>Length</StyledTableCell>
                                     <StyledTableCell>Status</StyledTableCell>
                                     <StyledTableCell />
                                 </TableRow>
@@ -76,8 +80,11 @@ export default class ProjectStatus extends React.Component {
                             <TableBody>
                                 {this.state.builds.map((row) => (
                                     <TableRow key={row.name}>
+                                        <TableCell>1</TableCell>
+                                        <TableCell>tahir</TableCell>
                                         <TableCell>{row.StartTs}</TableCell>
                                         <TableCell>{row.EndTs}</TableCell>
+                                        <TableCell>5min</TableCell>
                                         <TableCell>{row.Status}</TableCell>
                                         <TableCell>
                                             <Link to={this.getLink(row)}>Log</Link>

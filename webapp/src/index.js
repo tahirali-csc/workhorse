@@ -9,6 +9,7 @@ import Header from './Header/Header';
 import ProjectList from './ProjectList/ProjectList';
 import ProjectStatus from './ProjectStatus/ProjectStatus';
 import BuildLogs from './BuildLogs/BuildLogs';
+import AccordList from './AccordList'
 
 ReactDOM.render(
   
@@ -20,6 +21,7 @@ ReactDOM.render(
             <Route exact path='/' component={ProjectList} />
             <Route exact path='/projectStatus/:projectId/:name' component={ProjectStatus} />
             <Route exact path='/buildLogs/:buildId' component={BuildLogs} />
+            {/* <Route exact path='/buildLogs/:buildId' component={AccordList} /> */}
           </Switch>
         </Router>
       </div>
