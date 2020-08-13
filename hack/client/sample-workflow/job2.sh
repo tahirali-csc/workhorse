@@ -5,7 +5,10 @@ machine=$(hostname)
 # ls -la /etc
 echo "Sleeping...(Job2)"
 apk add git
+apk add python3
+apk add openjdk8
 git version
+# df
 # sleep 20s
 # echo "Yeaaaaaaa!"
 # date

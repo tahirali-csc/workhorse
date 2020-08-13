@@ -39,7 +39,7 @@ func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
 	err = tx.QueryRow(insertStmt, "Started", 1, time.Now()).Scan(&buildId)
 	for _, j := range jobs {
 
-		const baseDir = "/Users/tahir/workspace/workhorse-logs"
+		const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
 
 		fileLogs := buildlogs.NewFileLogs(baseDir)
 		// folderName := uuid.New()

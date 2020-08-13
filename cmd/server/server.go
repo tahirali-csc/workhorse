@@ -74,6 +74,12 @@ func registerAPIEndPoints() {
 	http.HandleFunc("/projectBuilds", rest.GetProjectBuilds)
 	http.HandleFunc("/buildLogs", rest.GetBuildLogs)
 	http.HandleFunc("/buildJobs", rest.GetBuildJobs)
+
+	http.HandleFunc("/tempFile", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		contents, _ := ioutil.ReadFile("/Users/tahir/workspace/workhorse-logs/container-logs/9bc01d59-5d73-4a5a-9d97-6080cb306fde/logs.txt")
+		fmt.Fprintf(w, string(contents))
+	})
 }
 
 func main() {

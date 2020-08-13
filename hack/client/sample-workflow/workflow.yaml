@@ -7,3 +7,8 @@ jobs:
         name: job2
         script: job2.sh
         image: alpine
+
+    -
+        name: job3
+        script: job3.sh
+        image: alpine        

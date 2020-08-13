@@ -26,7 +26,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
+	// const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
 
 	go func() {
 

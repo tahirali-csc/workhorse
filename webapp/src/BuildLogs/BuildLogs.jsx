@@ -1,4 +1,9 @@
-import React from 'react'
+import React, { useRef, createRef } from 'react'
+// import "./xterm/css/xterm.css"
+// import "./xterm/lib/xterm.js"
+// import "xterm/dist/xterm.css";
+
+
 
 import { makeStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
@@ -6,18 +11,34 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Ansi from "ansi-to-react";
+import ReactAnsi from 'react-ansi'
+import { Terminal } from "xterm";
+
+import { XTerm } from 'xterm-for-react'
+import { FitAddon } from 'xterm-addon-fit';
+import {
+    default as AnsiUp
+} from 'ansi_up';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Fade from '@material-ui/core/Fade';
+
+const ansi_up = new AnsiUp();
 
 const Convert = require('ansi-to-html');
 const convert = new Convert({
-    newline: true,
+    newline: false,
     escapeXML: true,
     stream: true
 });
 
 
+
 export default class BuildLogs extends React.Component {
+
     constructor(props) {
         super(props)
+        // this.xtermRef = createRef()
 
         let buildId = this.props.match.params.buildId.split("=")[1]
         console.log("BuildID", buildId)
@@ -54,23 +75,40 @@ export default class BuildLogs extends React.Component {
         //         }
         //     })
         // })
+
+
     }
 
     async componentDidMount() {
+        // You can call any method in XTerm.js by using 'xterm xtermRef.current.terminal.[What you want to call]
+        // let x = await (await fetch("http://localhost:8081/tempFile")).text()
+        // this.xtermRef.current.terminal.write(x)
+        // console.log('XTerm::', this.xtermRef)
+
         try {
             let res = await (await fetch("http://localhost:8081/buildJobs?buildId=" + this.state.buildId)).json()
             console.log('Result::', res)
 
-            for(let i=0; i<res.length; i++){
-                res[i].logs = ()=>{}
+            for (let i = 0; i < res.length; i++) {
+                res[i].logs = () => { }
                 res[i].textLogs = ""
+                res[i].ref = createRef()
+                res[i].rows = 0
+                res[i].status = ""
             }
-            
+
 
             this.setState({
                 jobs: res,
                 source: new EventSource("http://localhost:8081/buildLogs?buildId=" + this.state.buildId),
             }, () => {
+
+                // this.state.source.addEventListener('begin_job', message => {
+                //     console.log('begin_job:', message)
+                // })
+                // this.state.source.addEventListener('end_job', message => {
+                //     console.log('end_job:', message.data)
+                // })
 
                 this.state.source.addEventListener('close', () => {
                     this.state.source.close()
@@ -80,34 +118,83 @@ export default class BuildLogs extends React.Component {
                 this.state.source.addEventListener('message', message => {
                     let id = message.lastEventId
                     //let html = this.state.textLogs + "<br/>" + convert.toHtml(message.data)
-                    console.log(message)
+                    // console.log(message)
 
                     let m = this.state.jobs
 
-                    // let toupdate = m.filter(j=>j.id = id)[0]
-                    // console.log(toupdate)
-                    // let html = toupdate.textLogs + "<br/>" + convert.toHtml(message.data)
-                    
-                    // // console.log("--Start--")
-                    // // console.log('---Id:---', id)
-                    // // console.log("---End-----")
+                    let newJobs = this.state.jobs.map(j => {
 
-                    // toupdate.textLogs = html
-                    // toupdate.logs = ()=>{
-                    //     return {
-                    //         __html: html
-                    //     }
-                    // }
-                    let newJobs = this.state.jobs.map(j=>{
+
+                        // j.status = "Running"
+
                         // console.log("---", j.id, id, j.id == id)
                         // console.log(j)
-                        if(j.id == id){
-                            
-                            let html = j.textLogs + "<br/>" + convert.toHtml(message.data)
+                        if (j.id == id) {
+                            // if(message.data == "--end--"){
+                            //     // j.status = "Finished"
+                            //     return
+                            // }
+
+                            // console.log(message.data === "--end--")
+                            if (message.data === "--end--") {
+                                console.log('Yea')
+                                j.status = "Finished"
+                                return j
+                            }
+
+                            j.status = "Working"
+
+                            // const fitAddon = new FitAddon();
+                            // j.ref.current.terminal.loadAddon(fitAddon);
+
+                            let term = j.ref.current.terminal
+                            // var term = new Terminal();
+                            // term.open(termDiv)
+
+
+                            term.writeln(message.data)
+                            term.setOption('theme', {
+                                background: '#262f3d',
+                                foreground: 'white',
+                            })
+
+                            term.setOption('fontSize', 14)
+                            // // term.setOption('scrollback', 1000000)
+                            // term.setOption('disableStdin', true)
+                            // term.setOption('convertEol', true)
+                            // term.element.style.overflow = 'hidden'
+                            // // term.element.style.overflowy = 'hidden'
+                            // term.element.style.display = 'block'
+                            // term.element.style.width = '98vw'
+                            // // term.element.style.height = '2000px'
+
+
+
+
+                            // term.setOption('windowOptions', {
+                            //     fullscreenWin : true
+                            // })
+
+                            let html = j.textLogs + "<br/>" + ansi_up.ansi_to_html(message.data);
+                            // term.resize(200, j.rows++)
+                            term.element.style.width = "99vw"
+                            // term.element.style.height = "100vw"
+                            // term.scrollToBottom()
+                            // term.onScroll(function (e) {   
+                            //     return false;
+                            //   });
+
+
+                            // let html = j.textLogs + "\n" + convert.toHtml(message.data)
+
+                            // let html = j.textLogs + "\n" + convert.toHtml(message.data)
+                            // let html = j.textLogs + message.data
+                            // let html = j.textLogs + message.data
                             j.textLogs = html
-                            j.logs = ()=>{
+                            j.logs = () => {
                                 return {
                                     __html: html
+                                    // __html : x
                                 }
                             }
                             return j
@@ -124,9 +211,19 @@ export default class BuildLogs extends React.Component {
         } catch (ex) {
             console.log(ex)
         }
+
+
     }
 
+    // render(){
+    //     return(
+    //         <XTerm ref={this.xtermRef} style={{'width' : '100%'}} />
+    //     )
+    // }
+
     render() {
+
+
         // return (
         //     <div>
         //         <pre>
@@ -143,27 +240,64 @@ export default class BuildLogs extends React.Component {
         return (
             jobs.map(g => {
                 return (
-                    <Accordion key={g.id}>
-                        <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls="panel1a-content"
-                            id="panel1a-header"
-                        >
-                            <Typography>{g.name}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                                <div key={g.id}>
-                                    <pre>
-                                        <div style={{
-                                            
-                                        }}
-                                            dangerouslySetInnerHTML={g.logs()} />
-                                    </pre>
+
+                    <div style={{'background' : '#262f3d'}}>
+                        <Accordion key={g.id} style={{ 'padding': '0', 'background': '#262f3d' }}>
+
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel1a-content"
+                                id="panel1a-header"
+                            >
+                                <div style={{ 'display': 'flex' }}>
+                                    <Typography variant="h5" style={{ 'fontWeight': 'bold', 'color': 'white' }}>{g.name}</Typography>
+                                    {g.status === "Working" ? <CircularProgress /> : ""
+
+                                /* <Fade
+                                    style={{
+                                        transitionDelay: g.status === "" ? "800ms" : "800ms",
+                                      }} unmountOnExit>
+                                    <CircularProgress />
+                                </Fade> */}
+
                                 </div>
-                        </AccordionDetails>
-                    </Accordion>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                {/* <div
+                                id="parent-container"
+                                style={{
+                                width: 500,
+                                height: 500,
+                                padding: "1em",
+                                background: "#333"
+                                }}
+                            >
+                                <div ref={g.ref} />
+                            </div> */}
+                                <XTerm className="alpha1" ref={g.ref} />
+                            </AccordionDetails>
+                        </Accordion>
+                    </div>
                 )
             })
         )
     }
 }
+
+//     <div key={g.id}>
+                //      <p>
+                //          <pre>
+                //          <div 
+                //             style={{
+                //             // 'word-wrap': 'break-word',
+                //             // 'white-space': 'pre-line',
+                //             // 'overflow-wrap': 'break-word'
+                //             // 'overflow':'auto',
+                //             'white-space': 'pre-wrap'
+                //             // 'word-break': 'break-all'
+                //         }} 
+                //             dangerouslySetInnerHTML={g.logs()} 
+                //         />
+                //         </pre>
+                //      </p>
+                //  </div>

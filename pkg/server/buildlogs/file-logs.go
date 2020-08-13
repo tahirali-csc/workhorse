@@ -1,6 +1,7 @@
 package buildlogs
 
 import (
+	"log"
 	"os"
 	"path"
 
@@ -28,6 +29,7 @@ func (fl *FileLogs) Write(data []byte) {
 func createFile(baseDir string) (*os.File, error) {
 	folderName := uuid.New()
 	logPath := path.Join(baseDir, folderName.String())
+	log.Print("Full Path::::", logPath)
 	os.MkdirAll(logPath, 0755)
 	return os.Create(path.Join(logPath, "logs.txt"))
 }

@@ -159,6 +159,9 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 			log.Fatal(err)
 		}
 
+		// fmt.Fprintf(response, "begin_job", "data: %s\n\n", bj_id)
+		// response.Write(formatSSE("begin_job", string(bj_id)))
+
 		file, _ := os.Open(build_log_file)
 		r := bufio.NewReader(file)
 
@@ -244,6 +247,10 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 		}
 
 		log.Println("Going to read next job")
+
+		fmt.Fprintf(response, "id: %d\n", bj_id)
+		fmt.Fprintf(response, "data: %s\n\n", "--end--")
+		f.Flush()
 	}
 
 }
