@@ -3,13 +3,14 @@ package eventlister
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 )
 
 type BuildJobsEventListener struct {
-	DataChannel chan BuildEventObject
-	Cache       BuildJobCache
+	DataChannel   chan BuildEventObject
+	Cache         BuildJobCache
+	EventChannels map[int](chan []string)
+	sync          sync.Mutex
 }
 
 type BuildEventObject struct {
@@ -57,20 +58,43 @@ func (c *BuildJobCache) Contains(key int) bool {
 	return ok
 }
 
+func (listener *BuildJobsEventListener) Add(id int) chan []string {
+	defer listener.sync.Unlock()
+	listener.sync.Lock()
+
+	_, ok := listener.EventChannels[id]
+	if !ok {
+		listener.EventChannels[id] = make(chan []string)
+	}
+	return listener.EventChannels[id]
+}
+
 //TODO: Will review why not pointer receiver???
 func (listerner *BuildJobsEventListener) Receive(event string) {
 	eventInfo := EventObject{}
 	json.Unmarshal([]byte(event), &eventInfo)
-	log.Println("Event Receiver::", eventInfo)
+	// log.Println("Event Receiver::", eventInfo)
 
 	idVal := int((eventInfo.Data["id"]).(float64))
 
 	if eventInfo.Table == "build_jobs" {
 		listerner.Cache.Add(idVal, []string{eventInfo.Data["status"].(string), eventInfo.Data["build_log_file"].(string)})
-		// listerner.DataChannel <- BuildEventObject{
-		// 	Id:     idVal,
-		// 	Status: eventInfo.Data["status"].(string),
-		// 	File:   eventInfo.Data["build_log_file"].(string),
-		// }
+
+		// log.Println("Sending data to channel---", idVal)
+		defer listerner.sync.Unlock()
+		listerner.sync.Lock()
+
+		_, ok := listerner.EventChannels[idVal]
+		if !ok {
+			listerner.EventChannels[idVal] = make(chan []string)
+		}
+
+		// fmt.Println(listerner.EventChannels[idVal])
+		msg := []string{eventInfo.Data["status"].(string), eventInfo.Data["build_log_file"].(string)}
+		select {
+		case listerner.EventChannels[idVal] <- msg:
+		default:
+		}
+
 	}
 }

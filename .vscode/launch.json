@@ -23,7 +23,7 @@
             "program": "${cwd}/cmd/server/server.go",
             "env": {},
             "args": [                
-                
+                "--containerLogsFolder=/Users/tahir/workspace/workhorse-logs/container-logs"
             ]
         }
     ]

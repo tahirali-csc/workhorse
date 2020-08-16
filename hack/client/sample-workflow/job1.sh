@@ -8,8 +8,8 @@ sleep 2s
 # date
 # echo "Finished script##1"
 apk add python3
-# apk add git
-# apk add openjdk8
-# apk add openjdk11
+apk add git
+apk add openjdk8
+apk add openjdk11
 
 echo "This is my Mass"

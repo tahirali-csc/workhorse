@@ -90,8 +90,9 @@ func registerAPIEndPoints() {
 }
 
 var buildJobListener = &eventlister.BuildJobsEventListener{
-	DataChannel: make(chan eventlister.BuildEventObject),
-	Cache:       eventlister.NewBuildJobCache(),
+	DataChannel:   make(chan eventlister.BuildEventObject),
+	Cache:         eventlister.NewBuildJobCache(),
+	EventChannels: make(map[int]chan []string),
 }
 
 func main() {

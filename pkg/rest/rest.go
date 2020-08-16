@@ -154,7 +154,7 @@ func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, 
 		by, err := r.ReadBytes('\n')
 		if err == nil {
 			line := string(by)
-			log.Println("Sending::", line)
+			// log.Println("Sending::", line)
 			fmt.Fprintf(response, "id: %d\n", bj_id)
 			fmt.Fprintf(response, "data: %s\n\n", line)
 			f.Flush()
@@ -174,56 +174,97 @@ func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, 
 			log.Fatal(err)
 		}
 
-		startReading := make(chan string)
-		finishedChann := make(chan bool)
+		// readyForNext := make(chan bool)
 
-		go func() {
+		if status == "Finished" {
+			file, _ := os.Open(build_log_file)
+			r := bufio.NewReader(file)
+			for {
+				err := lineReaderFunc(bj_id, r)
+				if err != nil {
+					break
+				}
+			}
+		} else {
+
+		readLoop:
 			for {
 				if eventLister.Cache.Contains(bj_id) {
-					records := eventLister.Cache.Get(bj_id)
-					status := records[0]
 
-					fmt.Println("Status::", bj_id, status)
+					evData := eventLister.Cache.Get(bj_id)
+					status, file := evData[0], evData[1]
 
-					if status == "Started" || status == "Finished" {
-						startReading <- records[1]
-						close(startReading)
-						break
+					if status == "Pending" {
+						continue
+					}
+
+					filePtr, _ := os.Open(file)
+					r := bufio.NewReader(filePtr)
+
+					if status == "Started" {
+						for {
+							err := lineReaderFunc(bj_id, r)
+							if err != nil {
+								evData := eventLister.Cache.Get(bj_id)
+								status, _ := evData[0], evData[1]
+								if status == "Finished" {
+									break
+								}
+							}
+						}
+					}
+
+					for {
+						err := lineReaderFunc(bj_id, r)
+						if err != nil {
+							break readLoop
+						}
 					}
 				}
 			}
 
-			for {
-				records := eventLister.Cache.Get(bj_id)
-				status := records[0]
-				if status == "Finished" {
-					fmt.Println("I am finished::", bj_id)
-					finishedChann <- true
-					close(finishedChann)
-					return
-				}
-			}
-		}()
+			// eventChann := make(chan []string)
+			// 	eventChann := eventLister.Add(bj_id)
 
-		filePath := <-startReading
-		file, _ := os.Open(filePath)
-		r := bufio.NewReader(file)
+			// readLoop:
+			// 	for {
+			// 		select {
+			// 		case evData := <-eventChann:
+			// 			status := evData[0]
+			// 			file := evData[1]
 
-	loop:
-		for {
-			select {
-			case <-finishedChann:
-				log.Println("Preparing to shutdown")
-				for {
-					err := lineReaderFunc(bj_id, r)
-					log.Println("Errr::", err)
-					if err != nil {
-						break loop
-					}
-				}
-			default:
-				lineReaderFunc(bj_id, r)
-			}
+			// 			stopChan := make(chan bool)
+			// 			if status == "Started" {
+
+			// 				go func() {
+			// 					filePtr, _ := os.Open(file)
+			// 					r := bufio.NewReader(filePtr)
+			// 					for {
+			// 						select {
+			// 						case <-stopChan:
+			// 							log.Println("Processing Stop:::", bj_id)
+			// 							for {
+			// 								err := lineReaderFunc(bj_id, r)
+			// 								if err != nil {
+			// 									readyForNext <- true
+			// 									return
+			// 								}
+			// 							}
+			// 						default:
+			// 							lineReaderFunc(bj_id, r)
+			// 						}
+			// 					}
+			// 				}()
+			// 			} else if status == "Finished" {
+			// 				stopChan <- true
+			// 				log.Println("Received Stop:::", bj_id)
+			// 				close(eventChann)
+
+			// 				<-readyForNext
+			// 				break readLoop
+			// 			}
+			// 		}
+			// 	}
 		}
 
 		fmt.Fprintf(response, "id: %d\n", bj_id)
@@ -234,144 +275,6 @@ func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, 
 	}
 
 }
-
-// endChann := make(chan bool)
-// getOut := make(chan bool)
-
-// keepReadFile := func(r *bufio.Reader) {
-// 	for {
-// 		select {
-// 		case <-endChann:
-// 			for {
-// 				by, err := r.ReadBytes('\n')
-// 				if err != nil {
-// 					log.Println("Have read all logs")
-
-// 					fmt.Fprintf(response, "id: %d\n", bj_id)
-// 					fmt.Fprintf(response, "data: %s\n\n", "--end--")
-// 					f.Flush()
-
-// 					return
-// 				}
-
-// 				line := string(by)
-// 				fmt.Fprintf(response, "id: %d\n", bj_id)
-// 				fmt.Fprintf(response, "data: %s\n\n", line)
-// 				f.Flush()
-
-// 				getOut <- true
-// 			}
-// 		default:
-// 			by, err := r.ReadBytes('\n')
-// 			if err == nil {
-// 				line := string(by)
-// 				log.Println("Sending::", line)
-// 				fmt.Fprintf(response, "id: %d\n", bj_id)
-// 				fmt.Fprintf(response, "data: %s\n\n", line)
-// 				f.Flush()
-// 			}
-// 		}
-// 	}
-// }
-
-// for {
-// 	select {
-// 	case record := <-eventLister.DataChannel:
-// 		// obj := buildEventObject{}
-// 		// json.Unmarshal([]byte(record), &obj)
-// 		log.Println("obj::::", record)
-
-// 		if record.Id == bj_id {
-
-// 			if record.Status == "Started" {
-// 				file, _ := os.Open(record.File)
-// 				r := bufio.NewReader(file)
-// 				go keepReadFile(r)
-// 			} else if record.Status == "Finished" {
-// 				endChann <- true
-// 			}
-// 		}
-
-// 	case <-getOut:
-// 		break
-// 	}
-// 	fmt.Println("Waiting")
-// }
-
-// 	file, _ := os.Open(build_log_file)
-// 	r := bufio.NewReader(file)
-
-// 	statChann := make(chan bool)
-// 	ticker := time.NewTicker(time.Second * 10)
-// 	go func() {
-// 		checkStatus := func() bool {
-// 			checkStatus := `
-// 					SELECT status FROM build_jobs WHERE id=$1
-// 				`
-// 			var _status string
-// 			row := db.QueryRow(checkStatus, bj_id)
-// 			row.Scan(&_status)
-
-// 			if _status == "Finished" {
-// 				return true
-// 			}
-
-// 			return false
-// 		}
-
-// 		if checkStatus() {
-// 			statChann <- true
-// 			return
-// 		}
-
-// 		for {
-// 			select {
-// 			case <-ticker.C:
-// 				if checkStatus() {
-// 					statChann <- true
-// 					return
-// 				}
-// 			}
-// 		}
-// 	}()
-
-// loop:
-// 	for {
-// 		by, err := r.ReadBytes('\n')
-// 		if err == nil {
-// 			line := string(by)
-// 			log.Println("Sending::", line)
-// 			fmt.Fprintf(response, "id: %d\n", bj_id)
-// 			fmt.Fprintf(response, "data: %s\n\n", line)
-// 			f.Flush()
-// 		}
-
-// 		select {
-// 		case <-statChann:
-// 			break loop
-// 		default:
-// 		}
-// 	}
-
-// 	for {
-// 		by, err := r.ReadBytes('\n')
-// 		if err != nil {
-// 			log.Println("Have read logs")
-// 			break
-// 		}
-
-// 		line := string(by)
-// 		fmt.Fprintf(response, "id: %d\n", bj_id)
-// 		fmt.Fprintf(response, "data: %s\n\n", line)
-
-// 		f.Flush()
-// 	}
-
-// 	log.Println("Going to read next job")
-
-// fmt.Fprintf(response, "id: %d\n", bj_id)
-// fmt.Fprintf(response, "data: %s\n\n", "--end--")
-// f.Flush()
 
 func formatSSE(event string, data string) []byte {
 	eventPayload := "event: " + event + "\n"
