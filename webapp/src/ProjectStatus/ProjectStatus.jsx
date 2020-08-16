@@ -9,6 +9,9 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { withStyles, makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid'
+import TableFooter from '@material-ui/core/TableFooter';
+import TablePagination from '@material-ui/core/TablePagination';
+
 
 import {
     BrowserRouter as Router,
@@ -23,7 +26,7 @@ const StyledTableCell = withStyles((theme) => ({
     head: {
         backgroundColor: '#2074d4',
         color: theme.palette.common.white,
-        fontSize : 16
+        fontSize: 16
     },
     body: {
         fontSize: 14,
@@ -36,7 +39,8 @@ export default class ProjectStatus extends React.Component {
         this.state = {
             projectId: this.props.match.params.projectId,
             builds: [],
-            name: this.props.match.params.name
+            name: this.props.match.params.name,
+            page : 0
         }
     }
 
@@ -56,6 +60,12 @@ export default class ProjectStatus extends React.Component {
     getLink(o) {
         return "/buildLogs/buildId=" + o.ID
     }
+
+    handleChangePage = (event, newPage) => {
+        this.setState({
+            page: newPage
+        })
+    };
 
     render() {
         return (
@@ -93,6 +103,17 @@ export default class ProjectStatus extends React.Component {
                                 ))}
                             </TableBody>
                         </Table>
+                        {/* <TableFooter>
+                            <TableRow>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                                    rowsPerPage="5"
+                                    page={this.state.page}
+                                    onChangePage={this.handleChangePage}
+                                    count={this.state.builds.length}
+                                />
+                            </TableRow>
+                        </TableFooter> */}
                     </TableContainer>
                 </Grid>
             </Grid>

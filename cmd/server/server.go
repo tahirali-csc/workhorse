@@ -11,7 +11,10 @@ import (
 	"workhorse/pkg/api"
 	"workhorse/pkg/rest"
 	"workhorse/pkg/server"
+	as1 "workhorse/pkg/server/api"
 	"workhorse/pkg/util"
+
+	eventlister "workhorse/pkg/server/eventlistener"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,6 +22,7 @@ import (
 var upgrader = websocket.Upgrader{}
 var WorkScheduler server.Scheduler = nil
 var sm = server.StatsManager{}
+var serverConfig = as1.ServerConfig{}
 
 func handleWorkFlow(response http.ResponseWriter, request *http.Request) {
 	conn, err := upgrader.Upgrade(response, request, nil)
@@ -26,7 +30,7 @@ func handleWorkFlow(response http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
-	server.RunWorkFlowSync(conn, WorkScheduler)
+	server.RunWorkFlowSync(conn, WorkScheduler, serverConfig)
 
 	defer func() {
 		log.Println("Closing socket connection")
@@ -55,10 +59,10 @@ func handleNodeStats(_ http.ResponseWriter, request *http.Request) {
 
 		sm.UpdateStats(senderIP, mi)
 
-		log.Println(fmt.Sprintf("[%s] Memory : Free=%f, Total=%f, Used=%f --CPU Load=%f",
-			senderIP,
-			mi.MemoryStats.Free, mi.MemoryStats.Total, mi.MemoryStats.Used,
-			mi.CPUStats.CPULoad))
+		// log.Println(fmt.Sprintf("[%s] Memory : Free=%f, Total=%f, Used=%f --CPU Load=%f",
+		// 	senderIP,
+		// 	mi.MemoryStats.Free, mi.MemoryStats.Total, mi.MemoryStats.Used,
+		// 	mi.CPUStats.CPULoad))
 	}
 }
 
@@ -72,7 +76,10 @@ func handleReadLogs(response http.ResponseWriter, request *http.Request) {
 func registerAPIEndPoints() {
 	http.HandleFunc("/projectList", rest.GetProjectListHandler)
 	http.HandleFunc("/projectBuilds", rest.GetProjectBuilds)
-	http.HandleFunc("/buildLogs", rest.GetBuildLogs)
+	http.HandleFunc("/buildLogs", func(r http.ResponseWriter, rq *http.Request) {
+		rest.GetBuildLogs(buildJobListener, r, rq)
+	})
+
 	http.HandleFunc("/buildJobs", rest.GetBuildJobs)
 
 	http.HandleFunc("/tempFile", func(w http.ResponseWriter, r *http.Request) {
@@ -82,9 +89,15 @@ func registerAPIEndPoints() {
 	})
 }
 
+var buildJobListener = &eventlister.BuildJobsEventListener{
+	DataChannel: make(chan eventlister.BuildEventObject),
+	Cache:       eventlister.NewBuildJobCache(),
+}
+
 func main() {
 	//Read command line arguments
 	scheduleParam := flag.String("scheduler", "random", "Worker node schdeduler")
+	containerLogsFolderParam := flag.String("containerLogsFolder", "", "Container Logs folder")
 	flag.Parse()
 
 	lister := &server.WorkerNodeLister{StatsManager: &sm}
@@ -94,10 +107,11 @@ func main() {
 	} else {
 		WorkScheduler = server.NewMemoryBasedScheduler(lister)
 	}
-	//} else if *scheduleParam == "roundroubin" {
-	//	WorkScheduler = server.NewRoundRobinScheduler(lister)
 
-	//log.Println("Will use these worker nodes:::", workers)
+	serverConfig.ContainerLogsFolder = *containerLogsFolderParam
+	dbEventsListener := eventlister.DBEventsListener{}
+	dbEventsListener.AddListener(buildJobListener)
+	go dbEventsListener.StartListener()
 
 	http.HandleFunc("/runWorkflow", handleWorkFlow)
 	http.HandleFunc("/nodestats", handleNodeStats)

@@ -1,0 +1,24 @@
+total 64
+drwxr-xr-x    1 root     root          4096 Aug 16 01:23 [1;34m.[m
+drwxr-xr-x    1 root     root          4096 Aug 16 01:23 [1;34m..[m
+-rwxr-xr-x    1 root     root             0 Aug 16 01:23 [1;32m.dockerenv[m
+drwx------    3 root     root            96 Aug 16 01:23 [1;34m20200815212347[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34mbin[m
+drwxr-xr-x    5 root     root           360 Aug 16 01:23 [1;34mdev[m
+drwxr-xr-x    1 root     root          4096 Aug 16 01:23 [1;34metc[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34mhome[m
+drwxr-xr-x    7 root     root          4096 May 29 14:20 [1;34mlib[m
+drwxr-xr-x    5 root     root          4096 May 29 14:20 [1;34mmedia[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34mmnt[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34mopt[m
+dr-xr-xr-x  217 root     root             0 Aug 16 01:23 [1;34mproc[m
+drwx------    2 root     root          4096 May 29 14:20 [1;34mroot[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34mrun[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34msbin[m
+drwxr-xr-x    2 root     root          4096 May 29 14:20 [1;34msrv[m
+dr-xr-xr-x   12 root     root             0 Aug 16 01:23 [1;34msys[m
+drwxrwxrwt    2 root     root          4096 May 29 14:20 [1;34mtmp[m
+drwxr-xr-x    7 root     root          4096 May 29 14:20 [1;34musr[m
+drwxr-xr-x   12 root     root          4096 May 29 14:20 [1;34mvar[m
+Sleeping long(Job3)...
+./20200815212347/job3.sh: line 7: uid: not found

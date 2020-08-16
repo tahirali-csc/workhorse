@@ -8,13 +8,11 @@ import (
 	"workhorse/pkg/api"
 
 	_ "github.com/lib/pq"
-
-	"workhorse/pkg/server/buildlogs"
 )
 
 type BuildJobDTO struct {
-	JobID    int
-	FileLogs *buildlogs.FileLogs
+	JobID int
+	// FileLogs *buildlogs.FileLogs
 }
 
 func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
@@ -39,28 +37,23 @@ func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
 	err = tx.QueryRow(insertStmt, "Started", 1, time.Now()).Scan(&buildId)
 	for _, j := range jobs {
 
-		const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
-
-		fileLogs := buildlogs.NewFileLogs(baseDir)
-		// folderName := uuid.New()
-		// jobPath := path.Join(baseDir, "test-app", folderName.String())
-		// os.MkdirAll(jobPath, 0755)
-		// file, _ := os.Create(path.Join(jobPath, "logs.txt"))
+		// const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
+		// fileLogs := buildlogs.NewFileLogs(baseDir)
 
 		insertStmt := `
-		INSERT INTO build_jobs (build_id, job_name, status, build_log_file, start_ts)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO build_jobs (build_id, job_name, status, build_log_file)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id
 		`
 
 		id := -1
-		err = tx.QueryRow(insertStmt, buildId, j.Name, "Started", fileLogs.Path, time.Now()).Scan(&id)
+		err = tx.QueryRow(insertStmt, buildId, j.Name, "Pending", "").Scan(&id)
 		log.Println("Job ID:::", id)
 		if err != nil {
 			log.Println(err)
 		}
 
-		bbj = append(bbj, BuildJobDTO{JobID: id, FileLogs: fileLogs})
+		bbj = append(bbj, BuildJobDTO{JobID: id})
 	}
 
 	tx.Commit()
@@ -159,6 +152,34 @@ func UpdateBuildJob(buildJobId int, status string) int {
 
 	id := -1
 	_, err = db.Exec(updateStmt, status, time.Now(), buildJobId)
+	log.Println("ID:::", id)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return id
+}
+
+func UpdateBuildJobStatusAndLogLocation(buildJobId int, status string, file string) int {
+	var conninfo string = "dbname=postgres user=dev password=dev host=localhost sslmode=disable"
+	db, err := sql.Open("postgres", conninfo)
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
+	updateStmt := `
+	UPDATE build_jobs 
+	SET
+	start_ts=$1,
+	status=$2,
+	build_log_file=$3
+	where id=$4
+	`
+
+	id := -1
+	_, err = db.Exec(updateStmt, time.Now(), status, file, buildJobId)
 	log.Println("ID:::", id)
 	if err != nil {
 		log.Println(err)

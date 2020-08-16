@@ -9,10 +9,12 @@ import (
 	"workhorse/pkg/server/buildlogs"
 	"workhorse/pkg/util"
 
+	as1 "workhorse/pkg/server/api"
+
 	"github.com/gorilla/websocket"
 )
 
-func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
+func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler, config as1.ServerConfig) {
 
 	//Read the workflow file
 	_, msg, err := clientConn.ReadMessage()
@@ -20,8 +22,6 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 		log.Fatal(err)
 		return
 	}
-
-	// dataChan := make(chan []byte)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -52,7 +52,11 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 		bid, bbj := db.CreateBuildStructure(wtObj.Jobs)
 
 		for i, job := range wtObj.Jobs {
-			sendJobToWorkerNodeSync(job, scheduler.GetNext(), bbj[i].FileLogs)
+			continerLogsWriter := buildlogs.NewContainerLogsWriter(config)
+			logLocation := continerLogsWriter.GetLocation()
+			// fmt.Println(continerLogsWriter.GetLocation())
+			db.UpdateBuildJobStatusAndLogLocation(bbj[i].JobID, "Started", logLocation)
+			sendJobToWorkerNodeSync(job, scheduler.GetNext(), continerLogsWriter)
 			db.UpdateBuildJob(bbj[i].JobID, "Finished")
 		}
 
@@ -80,7 +84,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler) {
 	log.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *buildlogs.FileLogs) {
+func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, conainerLogWriter buildlogs.ContainerLogsWriter) {
 
 	log.Println("Sending the job at " + worker.Address)
 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}
@@ -106,7 +110,8 @@ func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, logFile *bu
 			break
 		} else {
 			// logFile.WriteString(string(msg))
-			logFile.Write(msg)
+			// logFile.Write(msg)
+			conainerLogWriter.Write(msg)
 		}
 	}
 

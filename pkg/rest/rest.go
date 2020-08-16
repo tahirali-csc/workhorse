@@ -12,6 +12,8 @@ import (
 	"time"
 	"workhorse/pkg/api"
 
+	eventlister "workhorse/pkg/server/eventlistener"
+
 	_ "github.com/lib/pq"
 )
 
@@ -31,7 +33,7 @@ func GetProjectListHandler(response http.ResponseWriter, request *http.Request) 
 	response.Write(json)
 }
 
-func GetBuildLogs(w http.ResponseWriter, request *http.Request) {
+func GetBuildLogs(eventLister *eventlister.BuildJobsEventListener, w http.ResponseWriter, request *http.Request) {
 	log.Println("Reading build logs...")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -45,7 +47,7 @@ func GetBuildLogs(w http.ResponseWriter, request *http.Request) {
 	}
 
 	buildId, _ := strconv.Atoi(request.URL.Query().Get("buildId"))
-	getBuildLogs(buildId, w, f)
+	getBuildLogs(eventLister, buildId, w, f)
 
 	w.Write(formatSSE("close", ""))
 	f.Flush()
@@ -134,7 +136,7 @@ func getProjectBuild(projectId int) []api.ProjectBuild {
 	return plist
 }
 
-func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
+func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, response http.ResponseWriter, f http.Flusher) {
 	var conninfo string = "dbname=postgres user=dev password=dev host=localhost sslmode=disable"
 	db, err := sql.Open("postgres", conninfo)
 	if err != nil {
@@ -145,7 +147,20 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 
 	selectStmt := `
 	SELECT id, status, build_log_file FROM build_jobs WHERE build_id=$1
+	ORDER BY id ASC
 	`
+
+	lineReaderFunc := func(bj_id int, r *bufio.Reader) error {
+		by, err := r.ReadBytes('\n')
+		if err == nil {
+			line := string(by)
+			log.Println("Sending::", line)
+			fmt.Fprintf(response, "id: %d\n", bj_id)
+			fmt.Fprintf(response, "data: %s\n\n", line)
+			f.Flush()
+		}
+		return err
+	}
 
 	rows, _ := db.Query(selectStmt, buildId)
 	defer rows.Close()
@@ -159,101 +174,204 @@ func getBuildLogs(buildId int, response http.ResponseWriter, f http.Flusher) {
 			log.Fatal(err)
 		}
 
-		// fmt.Fprintf(response, "begin_job", "data: %s\n\n", bj_id)
-		// response.Write(formatSSE("begin_job", string(bj_id)))
+		startReading := make(chan string)
+		finishedChann := make(chan bool)
 
-		file, _ := os.Open(build_log_file)
-		r := bufio.NewReader(file)
-
-		statChann := make(chan bool)
-		ticker := time.NewTicker(time.Second * 10)
 		go func() {
-			checkStatus := func() bool {
-				checkStatus := `
-						SELECT status FROM build_jobs WHERE id=$1
-					`
-				var _status string
-				row := db.QueryRow(checkStatus, bj_id)
-				row.Scan(&_status)
+			for {
+				if eventLister.Cache.Contains(bj_id) {
+					records := eventLister.Cache.Get(bj_id)
+					status := records[0]
 
-				if _status == "Finished" {
-					return true
+					fmt.Println("Status::", bj_id, status)
+
+					if status == "Started" || status == "Finished" {
+						startReading <- records[1]
+						close(startReading)
+						break
+					}
 				}
-
-				return false
-			}
-
-			if checkStatus() {
-				statChann <- true
-				return
 			}
 
 			for {
-				select {
-				case <-ticker.C:
-					if checkStatus() {
-						statChann <- true
-						return
-					}
-					// checkStatus := `
-					// 	SELECT status FROM build_jobs WHERE id=$1
-					// `
-					// var _status string
-					// row := db.QueryRow(checkStatus, bj_id)
-					// row.Scan(&_status)
-
-					// if _status == "Finished" {
-					// 	statChann <- true
-					// 	return
-					// }
+				records := eventLister.Cache.Get(bj_id)
+				status := records[0]
+				if status == "Finished" {
+					fmt.Println("I am finished::", bj_id)
+					finishedChann <- true
+					close(finishedChann)
+					return
 				}
 			}
 		}()
 
+		filePath := <-startReading
+		file, _ := os.Open(filePath)
+		r := bufio.NewReader(file)
+
 	loop:
 		for {
-			by, err := r.ReadBytes('\n')
-			if err == nil {
-				line := string(by)
-				// response.Write(formatSSE("message", line))
-				// response.Write([]byte(line))
-				log.Println("Sending::", line)
-				fmt.Fprintf(response, "id: %d\n", bj_id)
-				fmt.Fprintf(response, "data: %s\n\n", line)
-				f.Flush()
-			}
-
 			select {
-			case <-statChann:
-				break loop
+			case <-finishedChann:
+				log.Println("Preparing to shutdown")
+				for {
+					err := lineReaderFunc(bj_id, r)
+					log.Println("Errr::", err)
+					if err != nil {
+						break loop
+					}
+				}
 			default:
+				lineReaderFunc(bj_id, r)
 			}
 		}
-
-		for {
-			by, err := r.ReadBytes('\n')
-			if err != nil {
-				log.Println("Have read logs")
-				break
-			}
-
-			line := string(by)
-			// response.Write(formatSSE("message", line))
-			// response.Write(
-			fmt.Fprintf(response, "id: %d\n", bj_id)
-			fmt.Fprintf(response, "data: %s\n\n", line)
-
-			f.Flush()
-		}
-
-		log.Println("Going to read next job")
 
 		fmt.Fprintf(response, "id: %d\n", bj_id)
 		fmt.Fprintf(response, "data: %s\n\n", "--end--")
 		f.Flush()
+
+		fmt.Println("****Going to read next****")
 	}
 
 }
+
+// endChann := make(chan bool)
+// getOut := make(chan bool)
+
+// keepReadFile := func(r *bufio.Reader) {
+// 	for {
+// 		select {
+// 		case <-endChann:
+// 			for {
+// 				by, err := r.ReadBytes('\n')
+// 				if err != nil {
+// 					log.Println("Have read all logs")
+
+// 					fmt.Fprintf(response, "id: %d\n", bj_id)
+// 					fmt.Fprintf(response, "data: %s\n\n", "--end--")
+// 					f.Flush()
+
+// 					return
+// 				}
+
+// 				line := string(by)
+// 				fmt.Fprintf(response, "id: %d\n", bj_id)
+// 				fmt.Fprintf(response, "data: %s\n\n", line)
+// 				f.Flush()
+
+// 				getOut <- true
+// 			}
+// 		default:
+// 			by, err := r.ReadBytes('\n')
+// 			if err == nil {
+// 				line := string(by)
+// 				log.Println("Sending::", line)
+// 				fmt.Fprintf(response, "id: %d\n", bj_id)
+// 				fmt.Fprintf(response, "data: %s\n\n", line)
+// 				f.Flush()
+// 			}
+// 		}
+// 	}
+// }
+
+// for {
+// 	select {
+// 	case record := <-eventLister.DataChannel:
+// 		// obj := buildEventObject{}
+// 		// json.Unmarshal([]byte(record), &obj)
+// 		log.Println("obj::::", record)
+
+// 		if record.Id == bj_id {
+
+// 			if record.Status == "Started" {
+// 				file, _ := os.Open(record.File)
+// 				r := bufio.NewReader(file)
+// 				go keepReadFile(r)
+// 			} else if record.Status == "Finished" {
+// 				endChann <- true
+// 			}
+// 		}
+
+// 	case <-getOut:
+// 		break
+// 	}
+// 	fmt.Println("Waiting")
+// }
+
+// 	file, _ := os.Open(build_log_file)
+// 	r := bufio.NewReader(file)
+
+// 	statChann := make(chan bool)
+// 	ticker := time.NewTicker(time.Second * 10)
+// 	go func() {
+// 		checkStatus := func() bool {
+// 			checkStatus := `
+// 					SELECT status FROM build_jobs WHERE id=$1
+// 				`
+// 			var _status string
+// 			row := db.QueryRow(checkStatus, bj_id)
+// 			row.Scan(&_status)
+
+// 			if _status == "Finished" {
+// 				return true
+// 			}
+
+// 			return false
+// 		}
+
+// 		if checkStatus() {
+// 			statChann <- true
+// 			return
+// 		}
+
+// 		for {
+// 			select {
+// 			case <-ticker.C:
+// 				if checkStatus() {
+// 					statChann <- true
+// 					return
+// 				}
+// 			}
+// 		}
+// 	}()
+
+// loop:
+// 	for {
+// 		by, err := r.ReadBytes('\n')
+// 		if err == nil {
+// 			line := string(by)
+// 			log.Println("Sending::", line)
+// 			fmt.Fprintf(response, "id: %d\n", bj_id)
+// 			fmt.Fprintf(response, "data: %s\n\n", line)
+// 			f.Flush()
+// 		}
+
+// 		select {
+// 		case <-statChann:
+// 			break loop
+// 		default:
+// 		}
+// 	}
+
+// 	for {
+// 		by, err := r.ReadBytes('\n')
+// 		if err != nil {
+// 			log.Println("Have read logs")
+// 			break
+// 		}
+
+// 		line := string(by)
+// 		fmt.Fprintf(response, "id: %d\n", bj_id)
+// 		fmt.Fprintf(response, "data: %s\n\n", line)
+
+// 		f.Flush()
+// 	}
+
+// 	log.Println("Going to read next job")
+
+// fmt.Fprintf(response, "id: %d\n", bj_id)
+// fmt.Fprintf(response, "data: %s\n\n", "--end--")
+// f.Flush()
 
 func formatSSE(event string, data string) []byte {
 	eventPayload := "event: " + event + "\n"

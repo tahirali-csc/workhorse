@@ -1,5 +1,6 @@
 package buildlogs
 
-type LogWriter interface {
+type ContainerLogsWriter interface {
 	Write(data []byte)
+	GetLocation() string
 }

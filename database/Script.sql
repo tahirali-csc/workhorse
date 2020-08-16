@@ -44,6 +44,10 @@ select * from build_jobs
 
 
 
+CREATE TRIGGER build_jobs_notify_event
+AFTER INSERT OR UPDATE OR DELETE ON build_jobs
+    FOR EACH ROW EXECUTE PROCEDURE notify_event()
+
 drop table build
 drop table build_jobs 
 
