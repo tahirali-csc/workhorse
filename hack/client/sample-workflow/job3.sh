@@ -4,6 +4,7 @@
 # ls -la    
 echo "Sleeping long(Job3)..."
 sleep 2s
+apk add maven
 echo "Yea!"
 # uid
 

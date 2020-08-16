@@ -36,13 +36,3 @@
     transform: rotate(360deg);
   }
 }
-
-
-
-.terminal-container {
-  width: 800px;
-  height: 450px;
-  margin: 0 auto;
-  padding: 2px;
-}
-

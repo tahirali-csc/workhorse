@@ -202,6 +202,17 @@ func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, 
 					r := bufio.NewReader(filePtr)
 
 					if status == "Started" {
+
+						// watcher, err := fsnotify.NewWatcher()
+						// if err != nil {
+						// 	log.Fatal(err)
+						// }
+						// defer watcher.Close()
+						// err = watcher.Add(file)
+						// if err != nil {
+						// 	log.Fatal(err)
+						// }
+
 						for {
 							err := lineReaderFunc(bj_id, r)
 							if err != nil {

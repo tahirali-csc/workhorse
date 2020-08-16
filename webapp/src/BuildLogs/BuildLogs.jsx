@@ -120,6 +120,9 @@ export default class BuildLogs extends React.Component {
                     //let html = this.state.textLogs + "<br/>" + convert.toHtml(message.data)
                     // console.log(message)
 
+                    const fitAddon = new FitAddon();
+
+
                     let m = this.state.jobs
 
                     let newJobs = this.state.jobs.map(j => {
@@ -150,12 +153,17 @@ export default class BuildLogs extends React.Component {
                             let term = j.ref.current.terminal
                             // var term = new Terminal();
                             // term.open(termDiv)
+                            // term.loadAddon(fitAddon);
+                            // fitAddon.fit();
+
+                            
+
 
 
                             term.writeln(message.data)
                             term.setOption('theme', {
                                 background: '#262f3d',
-                                foreground: 'white',
+                                // foreground: 'white'
                             })
 
                             term.setOption('fontSize', 14)
@@ -241,8 +249,8 @@ export default class BuildLogs extends React.Component {
             jobs.map(g => {
                 return (
 
-                    <div style={{'background' : '#262f3d'}}>
-                        <Accordion key={g.id} style={{ 'padding': '0', 'background': '#262f3d' }}>
+                    <div style={{'background' : 'white'}}>
+                        <Accordion key={g.id} style={{ 'padding': '0', 'background': 'white' }}>
 
                             <AccordionSummary
                                 expandIcon={<ExpandMoreIcon />}
@@ -250,7 +258,7 @@ export default class BuildLogs extends React.Component {
                                 id="panel1a-header"
                             >
                                 <div style={{ 'display': 'flex' }}>
-                                    <Typography variant="h5" style={{ 'fontWeight': 'bold', 'color': 'white' }}>{g.name}</Typography>
+                                    <Typography variant="h5" style={{ 'fontWeight': 'bold', 'color': 'black' }}>{g.name}</Typography>
                                     {g.status === "Working" ? <CircularProgress /> : ""
 
                                 /* <Fade
