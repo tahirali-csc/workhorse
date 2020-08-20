@@ -7,10 +7,11 @@ type Workflow struct {
 }
 
 type WorkflowJob struct {
-	Name           string
-	FileName       string
-	ScriptContents []byte
-	Image          string
+	ID       int
+	Name     string
+	FileName string
+	// ScriptContents []byte
+	Image string
 }
 
 type NodeStats struct {

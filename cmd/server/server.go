@@ -16,6 +16,8 @@ import (
 
 	eventlister "workhorse/pkg/server/eventlistener"
 
+	scheuduler "workhorse/pkg/scheuduler"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -110,9 +112,14 @@ func main() {
 	}
 
 	serverConfig.ContainerLogsFolder = *containerLogsFolderParam
+
 	dbEventsListener := eventlister.DBEventsListener{}
 	dbEventsListener.AddListener(buildJobListener)
+
 	go dbEventsListener.StartListener()
+
+	jobScheduler := scheuduler.JobScheduler{}
+	go jobScheduler.Start(&dbEventsListener, serverConfig, WorkScheduler)
 
 	http.HandleFunc("/runWorkflow", handleWorkFlow)
 	http.HandleFunc("/nodestats", handleNodeStats)

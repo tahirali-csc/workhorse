@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"net/url"
-	"sync"
 	"workhorse/pkg/api"
 	"workhorse/pkg/db"
 	"workhorse/pkg/server/buildlogs"
@@ -23,8 +22,8 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler, config as1
 		return
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	// var wg sync.WaitGroup
+	// wg.Add(1)
 
 	// const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
 
@@ -49,19 +48,19 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler, config as1
 		// 	db.UpdateBuildJob(jId, "Finished")
 		// }
 
-		bid, bbj := db.CreateBuildStructure(wtObj.Jobs)
+		// bid, bbj := db.CreateBuildStructure(wtObj.Jobs)
+		db.CreateBuildStructure(wtObj.Jobs)
 
-		for i, job := range wtObj.Jobs {
-			continerLogsWriter := buildlogs.NewContainerLogsWriter(config)
-			logLocation := continerLogsWriter.GetLocation()
-			// fmt.Println(continerLogsWriter.GetLocation())
-			db.UpdateBuildJobStatusAndLogLocation(bbj[i].JobID, "Started", logLocation)
-			sendJobToWorkerNodeSync(job, scheduler.GetNext(), continerLogsWriter)
-			db.UpdateBuildJob(bbj[i].JobID, "Finished")
-		}
+		// for i, job := range wtObj.Jobs {
+		// 	continerLogsWriter := buildlogs.NewContainerLogsWriter(config)
+		// 	logLocation := continerLogsWriter.GetLocation()
+		// 	db.UpdateBuildJobStatusAndLogLocation(bbj[i].JobID, "Started", logLocation)
+		// 	sendJobToWorkerNodeSync(job, scheduler.GetNext(), continerLogsWriter)
+		// 	db.UpdateBuildJob(bbj[i].JobID, "Finished")
+		// }
 
-		wg.Done()
-		db.UpdateBuild(bid, "End")
+		// wg.Done()
+		// db.UpdateBuild(bid, "End")
 		clientConn.Close()
 	}()
 
@@ -73,7 +72,7 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler, config as1
 	// log.Println("Temp file::", file.Name())
 	// defer file.Close()
 
-	wg.Wait()
+	// wg.Wait()
 
 	//Stream the response and send to client
 	// for msg := range dataChan {
@@ -81,10 +80,10 @@ func RunWorkFlowSync(clientConn *websocket.Conn, scheduler Scheduler, config as1
 	// 	file.WriteString(string(msg))
 	// }
 
-	log.Println("Finished the worflow")
+	// log.Println("Finished the worflow")
 }
 
-func sendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, conainerLogWriter buildlogs.ContainerLogsWriter) {
+func SendJobToWorkerNodeSync(job api.WorkflowJob, worker WorkerNode, conainerLogWriter buildlogs.ContainerLogsWriter) {
 
 	log.Println("Sending the job at " + worker.Address)
 	u := url.URL{Scheme: "ws", Host: worker.Address, Path: "/runJob"}

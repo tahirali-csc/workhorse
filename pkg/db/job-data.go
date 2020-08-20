@@ -27,14 +27,14 @@ func CreateBuildStructure(jobs []api.WorkflowJob) (int, []BuildJobDTO) {
 	tx, err := db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 
 	insertStmt := `
-	INSERT INTO build (status, project_id, start_ts)
+	INSERT INTO build (status, project_id, created_ts)
 	VALUES ($1, $2, $3)
 	RETURNING id
 	`
 
 	buildId := -1
 	bbj := []BuildJobDTO{}
-	err = tx.QueryRow(insertStmt, "Started", 1, time.Now()).Scan(&buildId)
+	err = tx.QueryRow(insertStmt, "Pending", 1, time.Now()).Scan(&buildId)
 	for _, j := range jobs {
 
 		// const baseDir = "/Users/tahir/workspace/workhorse-logs/container-logs"
@@ -152,34 +152,6 @@ func UpdateBuildJob(buildJobId int, status string) int {
 
 	id := -1
 	_, err = db.Exec(updateStmt, status, time.Now(), buildJobId)
-	log.Println("ID:::", id)
-	if err != nil {
-		log.Println(err)
-	}
-
-	return id
-}
-
-func UpdateBuildJobStatusAndLogLocation(buildJobId int, status string, file string) int {
-	var conninfo string = "dbname=postgres user=dev password=dev host=localhost sslmode=disable"
-	db, err := sql.Open("postgres", conninfo)
-	if err != nil {
-		panic(err)
-	}
-
-	defer db.Close()
-
-	updateStmt := `
-	UPDATE build_jobs 
-	SET
-	start_ts=$1,
-	status=$2,
-	build_log_file=$3
-	where id=$4
-	`
-
-	id := -1
-	_, err = db.Exec(updateStmt, time.Now(), status, file, buildJobId)
 	log.Println("ID:::", id)
 	if err != nil {
 		log.Println(err)

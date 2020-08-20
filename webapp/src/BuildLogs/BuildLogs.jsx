@@ -118,7 +118,7 @@ export default class BuildLogs extends React.Component {
                 this.state.source.addEventListener('message', message => {
                     let id = message.lastEventId
                     //let html = this.state.textLogs + "<br/>" + convert.toHtml(message.data)
-                    // console.log(message)
+                    console.log(message)
 
                     const fitAddon = new FitAddon();
 

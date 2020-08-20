@@ -68,13 +68,21 @@ func runDockerContainer(job *api.WorkflowJob) io.ReadCloser {
 	}
 	io.Copy(os.Stdout, reader)
 
-	jobDir := createTempFile(string(job.ScriptContents), job.FileName)
+	jobDir, err := ioutil.TempDir("", "app")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gitClone(jobDir)
+
+	// jobDir := createTempFile(string(job.ScriptContents), job.FileName)
 	log.Println(jobDir)
 
-	targetMountDir := getTargetMountDirectory()
+	// targetMountDir := getTargetMountDirectory()
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image:        job.Image,
-		Cmd:          []string{"/bin/sh", "-c", "./" + targetMountDir + "/" + job.FileName},
+		Image: job.Image,
+		// Cmd:          []string{"/bin/sh", "-c", "./" + targetMountDir + "/" + job.FileName},
+		Cmd:          []string{"/bin/sh", "-c", "." + "/foo/" + job.FileName},
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -87,7 +95,8 @@ func runDockerContainer(job *api.WorkflowJob) io.ReadCloser {
 				//Use a unique different directory to avoid conflict with directory name
 				//in container
 				// Target: "/job",
-				Target: path.Join("/", targetMountDir),
+				// Target: path.Join("/", targetMountDir),
+				Target: "/foo",
 			},
 		},
 	}, nil, "")

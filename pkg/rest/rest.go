@@ -110,7 +110,7 @@ func getProjectBuild(projectId int) []api.ProjectBuild {
 
 	selectStmt := `
 	SELECT id, status, start_ts, end_ts FROM build WHERE project_id=$1
-	ORDER BY start_ts DESC 
+	ORDER BY start_ts DESC
 	`
 
 	rows, _ := db.Query(selectStmt, projectId)
@@ -154,7 +154,7 @@ func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, 
 		by, err := r.ReadBytes('\n')
 		if err == nil {
 			line := string(by)
-			// log.Println("Sending::", line)
+			log.Println("Sending::", line)
 			fmt.Fprintf(response, "id: %d\n", bj_id)
 			fmt.Fprintf(response, "data: %s\n\n", line)
 			f.Flush()
@@ -173,6 +173,7 @@ func getBuildLogs(eventLister *eventlister.BuildJobsEventListener, buildId int, 
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("-----Starting------", status, build_log_file)
 
 		// readyForNext := make(chan bool)
 
