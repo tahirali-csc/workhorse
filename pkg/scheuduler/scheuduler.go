@@ -22,30 +22,33 @@ func (sch *JobScheduler) Start(dbListener *eventlister.DBEventsListener, config 
 	wqueue := NewWorkQueue()
 
 	go func() {
-		// running := 0
-		// maxAllowed := 2
 
+		allowedJobs := 1
+		sm := make(chan int, allowedJobs)
 		for {
-			// if running < maxAllowed {
+
 			if wqueue.Len() > 0 {
+				sm <- 1
+
 				id := wqueue.Remove()
 
-				// logLocation := continerLogsWriter.GetLocation()
-
 				bid := id.([]interface{})[0].(int)
-				sch.updateBuildStart(bid)
+				go func() {
+					sch.updateBuildStart(bid)
 
-				buildJobs := sch.getBuildJobDetails(bid)
+					buildJobs := sch.getBuildJobDetails(bid)
 
-				for _, job := range buildJobs {
-					continerLogsWriter := buildlogs.NewContainerLogsWriter(config)
-					logLocation := continerLogsWriter.GetLocation()
-					updateBuildJobStatusAndLogLocation(job.ID, "Started", logLocation)
-					server.SendJobToWorkerNodeSync(job, nodeScheduler.GetNext(), continerLogsWriter)
-					updateBuildJob(job.ID, "Finished")
-				}
+					for _, job := range buildJobs {
+						continerLogsWriter := buildlogs.NewContainerLogsWriter(config)
+						logLocation := continerLogsWriter.GetLocation()
+						updateBuildJobStatusAndLogLocation(job.ID, "Started", logLocation)
+						server.SendJobToWorkerNodeSync(job, nodeScheduler.GetNext(), continerLogsWriter)
+						updateBuildJob(job.ID, "Finished")
+					}
 
-				sch.updateBuildFinished(bid)
+					sch.updateBuildFinished(bid)
+					<-sm
+				}()
 
 				// fmt.Println("Queu:::", bid)
 
